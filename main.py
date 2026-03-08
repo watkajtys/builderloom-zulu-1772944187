@@ -273,7 +273,7 @@ def start_viewer_server():
             if self.path == "/" or self.path.startswith("/assets") or self.path == "/index.html":
                 # When serving built static files directly from root (like the vite build outputs)
                 pass
-            elif self.path == "/agents" or self.path == "/viewer/agents":
+            elif self.path == "/agents" or self.path == "/viewer/agents" or self.path == "/viewer/":
                 pass
             elif not self.path.startswith("/viewer"):
                 self.send_error(403, "Forbidden")
