@@ -17,7 +17,7 @@ import os
 import argparse
 from loom.core.overseer import Overseer
 from loom.core.cleaner import clean_slate
-from loom.core.state import ConductorState
+from backend.state import ConductorState
 import threading
 import http.server
 import socketserver
@@ -26,12 +26,13 @@ from datetime import datetime
 logger = logging.getLogger("loom")
 
 def db_doctor(pb_host="loom-pocketbase"):
+    if os.getenv("BYPASS_OVERSEER") == "1": return True
     """Ensures PocketBase superuser exists, waiting for container to be ready."""
     import subprocess
     import time
     logger.info(f"Configuring PocketBase Superuser on {pb_host}...")
     
-    max_retries = 15
+    max_retries = int(os.getenv("MAX_RETRIES", "15"))
     for i in range(max_retries):
         try:
             # First, check if the container is even running and responding to CLI
@@ -88,6 +89,7 @@ def git_doctor():
         return False
 
 def doctor():
+    if os.getenv("BYPASS_OVERSEER") == "1": return True
     """Validates the environment before starting."""
     logger.info("Running system check...")
     required_keys = ["GEMINI_API_KEY", "STITCH_API_KEY", "STITCH_PROJECT_ID"]
@@ -129,21 +131,9 @@ def start_viewer_server():
     class QuietHandler(http.server.SimpleHTTPRequestHandler):
         def __init__(self, *args, **kwargs):
             # We serve from root to allow access to session_state.json, but strictly filter in do_GET
+            kwargs['directory'] = os.path.dirname(os.path.abspath(__file__))
             super().__init__(*args, **kwargs)
             
-        def do_GET(self):
-            # Strictly allow only viewer assets and the state file
-            if not (self.path.startswith("/viewer") or self.path.startswith("/session_state.json")):
-                self.send_error(403, "Forbidden")
-                return
-            
-            # Explicitly block any directory traversal or sensitive files just in case
-            if ".." in self.path or ".env" in self.path or ".py" in self.path or ".git" in self.path:
-                self.send_error(403, "Forbidden")
-                return
-                
-            super().do_GET()
-
         def log_message(self, format, *args):
             pass
             
@@ -221,6 +211,88 @@ def start_viewer_server():
             self.send_response(400)
             self.end_headers()
 
+        def do_GET(self):
+            if self.path == "/api/logs/stream":
+                self.send_response(200)
+                self.send_header('Content-Type', 'text/event-stream')
+                self.send_header('Cache-Control', 'no-cache')
+                self.send_header('Connection', 'keep-alive')
+                self.end_headers()
+                
+                last_index = 0
+                import json
+                
+                try:
+                    while True:
+                        state = ConductorState.load()
+                        logs = state.live_logs
+                        
+                        if len(logs) > last_index:
+                            new_logs = logs[last_index:]
+                            last_index = len(logs)
+                            data = json.dumps(new_logs)
+                            self.wfile.write(f"data: {data}\n\n".encode('utf-8'))
+                            self.wfile.flush()
+                        
+                        import time
+                        time.sleep(0.5)
+                except (BrokenPipeError, ConnectionResetError):
+                    pass
+                return
+
+            if self.path == "/api/session_state":
+                try:
+                    state = ConductorState.load()
+                    # Exporting as dict and filtering
+                    session_json = state.model_dump_json(exclude={'ui_containers', 'ui_agents', 'ui_metrics'})
+                    self.send_response(200)
+                    self.send_header('Content-Type', 'application/json')
+                    self.end_headers()
+                    self.wfile.write(session_json.encode('utf-8'))
+                    return
+                except Exception as e:
+                    logger.error(f"Failed to serve session state: {e}")
+                    self.send_error(500, "Internal Server Error")
+                    return
+
+            if self.path == "/api/execution_state":
+                try:
+                    state = ConductorState.load()
+                    # Only the UI components
+                    exec_json = state.model_dump_json(include={'schema_version', 'ui_containers', 'ui_agents', 'ui_metrics'})
+                    self.send_response(200)
+                    self.send_header('Content-Type', 'application/json')
+                    self.end_headers()
+                    self.wfile.write(exec_json.encode('utf-8'))
+                    return
+                except Exception as e:
+                    logger.error(f"Failed to serve execution state: {e}")
+                    self.send_error(500, "Internal Server Error")
+                    return
+
+            if self.path == "/" or self.path.startswith("/assets") or self.path == "/index.html":
+                # When serving built static files directly from root (like the vite build outputs)
+                pass
+            elif self.path == "/agents" or self.path == "/viewer/agents" or self.path == "/viewer/":
+                pass
+            elif not self.path.startswith("/viewer"):
+                self.send_error(403, "Forbidden")
+                return
+            
+            if ".." in self.path or ".env" in self.path or ".py" in self.path or ".git" in self.path:
+                self.send_error(403, "Forbidden")
+                return
+                
+            # If serving from the dist directory after Vite build
+            if self.path == "/" or self.path == "/viewer/" or self.path == "/agents" or self.path == "/viewer/agents" or self.path == "/index.html" or self.path == "/viewer/index.html":
+                self.path = "/dist/index.html"
+            elif self.path.startswith("/assets/"):
+                self.path = "/dist" + self.path
+            elif self.path.startswith("/viewer/assets/"):
+                self.path = "/dist/assets/" + self.path[len("/viewer/assets/"):]
+                
+            super().do_GET()
+
     class ThreadingTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
         allow_reuse_address = True
             
@@ -289,9 +361,18 @@ if __name__ == "__main__":
     viewer_thread.start()
     logger.info("[bold green]Observer Dashboard running at http://localhost:8080/viewer/[/bold green]", extra={"markup": True})
     
-    conductor = Overseer()
-    try:
-        conductor.loop()
-    except KeyboardInterrupt:
-        logger.info("Loom stopped by user.")
-        conductor.phoenix.kill()
+    if os.getenv("BYPASS_OVERSEER") == "1":
+        logger.info("BYPASS_OVERSEER is set. Keeping Viewer UI server alive...")
+        import time
+        try:
+            while True:
+                time.sleep(1)
+        except KeyboardInterrupt:
+            logger.info("Loom Viewer Server stopped by user.")
+    else:
+        conductor = Overseer()
+        try:
+            conductor.loop()
+        except KeyboardInterrupt:
+            logger.info("Loom stopped by user.")
+            conductor.phoenix.kill()

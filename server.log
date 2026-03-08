@@ -1,0 +1,5 @@
+[05:41:04] INFO     Configuring Git identity...                       main.py:80
+           INFO     Observer Dashboard running at                    main.py:362
+                    http://localhost:8080/viewer/                               
+           INFO     BYPASS_OVERSEER is set. Keeping Viewer UI server main.py:365
+                    alive...                                                    

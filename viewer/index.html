@@ -31,6 +31,7 @@
 
         function App() {
             const [state, setState] = useState(null);
+            const [liveLogs, setLiveLogs] = useState([]);
             const [gallery, setGallery] = useState(null);
             const [visiblePatches, setVisiblePatches] = useState({});
             const [patchContents, setPatchContents] = useState({});
@@ -149,15 +150,33 @@
 
             useEffect(() => {
                 fetchState();
-                const interval = setInterval(fetchState, 2000);
+                const interval = setInterval(fetchState, 5000);
                 return () => clearInterval(interval);
+            }, []);
+
+            useEffect(() => {
+                const eventSource = new EventSource('/api/logs/stream');
+                eventSource.onmessage = (event) => {
+                    try {
+                        const newLogs = JSON.parse(event.data);
+                        if (Array.isArray(newLogs) && newLogs.length > 0) {
+                            setLiveLogs(prev => {
+                                const combined = [...prev, ...newLogs];
+                                return combined.length > 500 ? combined.slice(-500) : combined;
+                            });
+                        }
+                    } catch (e) {
+                        console.error('SSE parse error', e);
+                    }
+                };
+                return () => eventSource.close();
             }, []);
 
             useEffect(() => {
                 if (!isScrolledUpLogs.current && logContainerRef.current) {
                     logContainerRef.current.scrollTop = logContainerRef.current.scrollHeight;
                 }
-            }, [state?.live_logs]);
+            }, [liveLogs]);
 
             useEffect(() => {
                 if (viewMode === 'history' && !isScrolledUpMain.current && mainContainerRef.current) {
@@ -760,7 +779,7 @@
                         </div>
                         <div className="flex-1 p-6 font-mono text-[11px] overflow-y-auto" onScroll={(e) => isScrolledUpLogs.current = e.target.scrollHeight - e.target.scrollTop - e.target.clientHeight > 50} ref={logContainerRef}>
                             <div className="space-y-1.5 pb-4">
-                                {state.live_logs?.filter(log => {
+                                {(liveLogs.length > 0 ? liveLogs : (state.live_logs || [])).filter(log => {
                                     if (logFilter === 'error') return log.includes("ERROR");
                                     if (logFilter === 'jules') return log.includes("Jules");
                                     if (logFilter === 'brain') return log.includes("Overseer") || log.includes("Think");

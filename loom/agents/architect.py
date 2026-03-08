@@ -111,7 +111,7 @@ class ArchitectAgent(AgentProxy): # pylint: disable=too-few-public-methods
 
         return source_code, total_files, largest_file
 
-    def evaluate(self, app_meta: str, app_dir: str = "app") -> Tuple[int, str, List[Dict]]:
+    def evaluate(self, app_meta: str, app_dir: str = "app") -> Tuple[float, str, List[Dict]]:
         """
         Evaluates the full codebase architecture by generating a dependency graph,
         collecting source code, and requesting an architectural review from the LLM.
@@ -176,18 +176,18 @@ FULL CODEBASE:
 
             try:
                 data = self._parse_json(review_text)
-                score = data.get("score", 5)
+                score = float(data.get("score", 5.0))
                 critique = data.get("critique", "No critique provided.")
                 priorities = data.get("refactoring_priorities", [])
             except (ValueError, json.JSONDecodeError) as e:
                 logger.warning("Failed to parse Architect JSON: %s", e)
-                score = 5
+                score = 5.0
                 critique = review_text
                 priorities = []
 
-            score = max(1, min(10, score))
+            score = max(1.0, min(10.0, score))
             return score, critique, priorities
 
         except Exception as e: # pylint: disable=broad-exception-caught
             logger.error("Failed to evaluate architecture: %s", e)
-            return 5, f"Architectural evaluation failed: {str(e)}", []
+            return 5.0, f"Architectural evaluation failed: {str(e)}", []

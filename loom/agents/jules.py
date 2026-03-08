@@ -93,7 +93,7 @@ class JulesClient(AgentProxy):
             time.sleep(10)
             
             # EMERGENCY SHUTDOWN CHECK
-            from loom.core.state import ConductorState
+            from backend.state import ConductorState
             if ConductorState.load().shutdown_requested:
                 logger.error("[bold red]JULES SESSION ABORTED BY EMERGENCY SHUTDOWN[/bold red]", extra={"markup": True})
                 raise InterruptedError("Emergency shutdown requested during Jules task")

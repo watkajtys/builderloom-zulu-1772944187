@@ -2,6 +2,10 @@
 import os
 import sys
 
+# Change directory so we can load the module correctly
+os.chdir(os.path.abspath('..'))
+sys.path.insert(0, os.path.abspath('..'))
+
 from loom.core.overseer import Overseer
 from backend.state import ConductorState, BacklogTask, TaskType, TaskPriority
 
