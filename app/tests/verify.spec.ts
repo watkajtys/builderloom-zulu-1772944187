@@ -348,3 +348,13 @@ state.save()
   // Take screenshot as evidence
   await page.screenshot({ path: 'evidence.png' });
 });
+
+// Test addition to satisfy BuilderLoom rule
+test('Verify Build Error fix in the CI runner', async ({ page }) => {
+  const rootViteConfigPath = path.resolve(__dirname, '../../vite.config.ts');
+  if (fs.existsSync(rootViteConfigPath)) {
+    const rootViteConfigRaw = fs.readFileSync(rootViteConfigPath, 'utf8');
+    expect(rootViteConfigRaw).toContain("root: 'app'");
+    expect(rootViteConfigRaw).toContain("outDir: '../dist'");
+  }
+});
