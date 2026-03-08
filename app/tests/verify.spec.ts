@@ -409,6 +409,7 @@ state.save()
 
 // Test addition to satisfy BuilderLoom rule
 test('Verify Build Error fix in the CI runner', async ({ page }) => {
+  console.log('Testing Vite config output');
   const rootViteConfigPath = path.resolve(__dirname, '../../vite.config.ts');
   if (fs.existsSync(rootViteConfigPath)) {
     const rootViteConfigRaw = fs.readFileSync(rootViteConfigPath, 'utf8');
