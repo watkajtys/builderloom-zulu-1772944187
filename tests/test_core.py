@@ -1,7 +1,6 @@
 import os
 import json
 import pytest
-<<<<<<< ours
 from backend.state import ConductorState, BacklogTask, TaskType, TaskPriority
 import backend.state
 
@@ -106,79 +105,3 @@ def test_overseer_initialization_and_loop_iteration():
     
     # Run a single loop iteration and verify it handles it without crashing
     mock_overseer.loop()
-=======
-from unittest.mock import MagicMock
-from backend.state import ConductorState
-import backend.state
-from loom.core.overseer import Overseer
-
-def test_state_json_schema_output(tmp_path, monkeypatch):
-    # Change current working directory to temp so we don't pollute the real files
-    monkeypatch.setattr(backend.state, 'STATE_FILE', tmp_path / "session_state.json")
-    monkeypatch.setattr(backend.state, 'EXECUTION_STATE_FILE', tmp_path / "execution_state.json")
-    
-    state = ConductorState.reset()
-    state.save()
-    
-    assert (tmp_path / "session_state.json").exists()
-    assert (tmp_path / "execution_state.json").exists()
-    
-    with open(tmp_path / "session_state.json", "r") as f:
-        session_data = json.load(f)
-        
-    with open(tmp_path / "execution_state.json", "r") as f:
-        execution_data = json.load(f)
-        
-    assert session_data.get("schema_version") == "1.0.0"
-    assert execution_data.get("schema_version") == "1.0.0"
-    
-    # Check that UI properties are in execution_state but not in session_state
-    assert "ui_containers" in execution_data
-    assert "ui_agents" in execution_data
-    assert "ui_metrics" in execution_data
-    
-    assert "ui_containers" not in session_data
-    assert "ui_agents" not in session_data
-    assert "ui_metrics" not in session_data
-
-class MockOverseer(Overseer):
-    def __init__(self):
-        self.state = ConductorState.reset()
-        self.git = MagicMock()
-        self.phoenix = MagicMock()
-        self.jules = MagicMock()
-        self.stitch = MagicMock()
-        self.current_iteration_record = None
-        self.happiness_score = 0
-        self.last_critique = ""
-        self.app_screenshot = None
-        self.app_screenshot_path = None
-        self.patch_dest_rel = None
-        self.lab_memory = {}
-        
-        self.model = MagicMock()
-        self.architect = MagicMock()
-        self.vision = MagicMock()
-        self.pm = MagicMock()
-        self.vibe = MagicMock()
-        self.reflection = MagicMock()
-        self.pb_url = "http://localhost:8090"
-
-    def ensure_scaffold(self):
-        pass
-
-def test_overseer_error_catching_logic(tmp_path, monkeypatch):
-    monkeypatch.setattr(backend.state, 'STATE_FILE', tmp_path / "session_state.json")
-    monkeypatch.setattr(backend.state, 'EXECUTION_STATE_FILE', tmp_path / "execution_state.json")
-    
-    overseer = MockOverseer()
-    # Mock consume_steering to raise an exception and trigger the error boundary
-    overseer._consume_steering = MagicMock(side_effect=Exception("Simulated error for telemetry test"))
-    
-    overseer.loop()
-    
-    assert overseer.state.current_status == "CRITICAL_ERROR"
-    assert overseer.state.shutdown_requested is True
-    assert any("TELEMETRY_ERROR: Critical agent loop exception: Simulated error for telemetry test" in log for log in overseer.state.live_logs)
-
->>>>>>> theirs

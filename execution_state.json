@@ -33,13 +33,8 @@
     {
       "agentId": "jules-alpha",
       "state": "idle",
-<<<<<<< ours
-      "currentTask": "Task TEST-1772939061579",
-      "happinessScore": 8
-=======
       "currentTask": "Waiting for task",
       "happinessScore": 10
->>>>>>> theirs
     },
     {
       "agentId": "overseer-beta",
