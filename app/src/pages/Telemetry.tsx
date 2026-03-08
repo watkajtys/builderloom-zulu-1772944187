@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { useTelemetry } from '../hooks/useTelemetry';
 
 export default function Telemetry() {

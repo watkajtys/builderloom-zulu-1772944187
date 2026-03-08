@@ -1,13 +1,6 @@
-import React from 'react';
 
-interface TelemetryLog {
-  id: string;
-  timestamp: string;
-  agent: string;
-  level: string;
-  message: string;
-  metadata?: any;
-}
+
+import { TelemetryLog } from '../../types/telemetry';
 
 interface LogViewerProps {
   logs: TelemetryLog[];

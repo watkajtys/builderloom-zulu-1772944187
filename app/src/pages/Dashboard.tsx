@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import Header from '../components/dashboard/Header';
 import Sidebar from '../components/dashboard/Sidebar';
@@ -26,7 +26,7 @@ export default function Dashboard() {
   const { data: telemetryData, error: telemetryError } = useTelemetry();
   
   const logs = telemetryData?.logs || [];
-  const version = telemetryData?.version || '';
+  
   const error = telemetryError?.message || null;
 
   const handleErrorToggle = () => {

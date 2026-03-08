@@ -1,4 +1,4 @@
-import React from 'react';
+
 
 export default function Header() {
   return (
@@ -14,25 +14,25 @@ export default function Header() {
         <div className="h-8 w-px bg-slate-700"></div>
         <div className="flex gap-8">
           <div className="flex flex-col">
-            <span className="text-[10px] text-slate-400 uppercase font-bold tracking-widest">PY_INTERPRETER</span>
+            <span className="text-[10px] text-slate-400 uppercase font-bold tracking-widest">PYTHON_ORCHESTRATION</span>
             <div className="flex items-center gap-2">
-              <span className="font-mono text-neon-green font-bold">3.11.5_ACT</span>
+              <span className="font-mono text-neon-green font-bold">ACT_LOOM_CORE</span>
               <div className="w-16 h-2 bg-slate-900 brutalist-border overflow-hidden">
                 <div className="h-full bg-neon-green w-[82%]"></div>
               </div>
             </div>
           </div>
           <div className="flex flex-col">
-            <span className="text-[10px] text-slate-400 uppercase font-bold tracking-widest">DOCKER_CONTAINERS</span>
+            <span className="text-[10px] text-slate-400 uppercase font-bold tracking-widest">DOCKER_NODES</span>
             <div className="flex items-center gap-2">
-              <span className="font-mono text-primary font-bold">34_ACTIVE</span>
+              <span className="font-mono text-primary font-bold">SYNCED</span>
               <span className="material-symbols-outlined text-primary text-xs">layers</span>
             </div>
           </div>
           <div className="flex flex-col">
-            <span className="text-[10px] text-slate-400 uppercase font-bold tracking-widest">REACT_RENDER_TICK</span>
+            <span className="text-[10px] text-slate-400 uppercase font-bold tracking-widest">REACT_VIEWER_UI</span>
             <div className="flex items-center gap-2">
-              <span className="font-mono text-neon-amber font-bold">12ms</span>
+              <span className="font-mono text-neon-amber font-bold">12ms TICK</span>
               <div className="w-16 h-2 bg-slate-900 brutalist-border overflow-hidden">
                 <div className="h-full bg-neon-amber w-[45%]"></div>
               </div>

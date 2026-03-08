@@ -353,6 +353,11 @@ state.save()
   await expect(page.locator('.bg-slate-panel').first()).toBeVisible({ timeout: 5000 });
   await expect(page.locator('.brutalist-border').first()).toBeVisible({ timeout: 5000 });
 
+  // Verify custom app identity elements for AI Factory
+  await expect(page.locator('text=PYTHON_ORCHESTRATION')).toBeVisible({ timeout: 5000 });
+  await expect(page.locator('text=DOCKER_NODES')).toBeVisible({ timeout: 5000 });
+  await expect(page.locator('text=REACT_VIEWER_UI')).toBeVisible({ timeout: 5000 });
+
   // Take screenshot as evidence
   await page.screenshot({ path: 'evidence.png' });
 });

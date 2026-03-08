@@ -1,4 +1,4 @@
-import React from 'react';
+
 
 export default function Topology() {
   return (
@@ -59,6 +59,10 @@ export default function Topology() {
           <div className="flex items-center gap-2 p-2 bg-slate-900/50 border border-slate-800">
             <span className="material-symbols-outlined text-primary text-xs">info</span>
             <span className="text-[10px] font-mono text-slate-400">DOCKER_IMAGE_REGEN_QUEUE</span>
+          </div>
+          <div className="flex items-center gap-2 p-2 bg-slate-900/50 border border-slate-800">
+            <span className="material-symbols-outlined text-primary text-xs">settings_suggest</span>
+            <span className="text-[10px] font-mono text-slate-400">PYTHON_RUNTIME_STABLE</span>
           </div>
         </div>
       </div>
