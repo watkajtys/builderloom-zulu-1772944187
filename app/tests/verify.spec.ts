@@ -33,7 +33,7 @@ test('App fetches data independently avoiding useOrchestration god hook', async 
   const dynamicTaskId = `TEST-STATS-${Date.now()}`;
   
   // Trigger state update directly via Python backend to ensure it's generated natively
-  execSync(`python3 -m pip install pydantic pytest && PYTHONPATH=. python3 -c "from backend.state import ConductorState; state = ConductorState.load(); state.active_task_id = '${dynamicTaskId}'; state.current_status = 'Active'; state.db_stats = {'users': 1}; state.save()"`, { cwd: path.resolve(__dirname, '../../') });
+  execSync(`python3 -m pip install -r requirements.txt && PYTHONPATH=. python3 -c "from backend.state import ConductorState; state = ConductorState.load(); state.active_task_id = '${dynamicTaskId}'; state.current_status = 'Active'; state.db_stats = {'users': 1}; state.save()"`, { cwd: path.resolve(__dirname, '../../') });
 
   try { await page.goto('/'); } catch (e) {}
 
@@ -46,7 +46,7 @@ test('Trigger an agentic state update and verify the generated state is split in
   const dynamicTaskId = `TEST-${Date.now()}`;
   
   // Trigger state update directly via Python backend to ensure it's generated natively
-  execSync(`python3 -m pip install pydantic pytest && PYTHONPATH=. python3 -c "from backend.state import ConductorState, LoopIteration; state = ConductorState.load(); state.active_task_id = '${dynamicTaskId}'; state.current_status = 'Active'; state.history.append(LoopIteration(id=1, timestamp='2024-01-01T00:00:00', goal='test', happiness_score=8)); state.save()"`, { cwd: path.resolve(__dirname, '../../') });
+  execSync(`python3 -m pip install -r requirements.txt && PYTHONPATH=. python3 -c "from backend.state import ConductorState, LoopIteration; state = ConductorState.load(); state.active_task_id = '${dynamicTaskId}'; state.current_status = 'Active'; state.history.append(LoopIteration(id=1, timestamp='2024-01-01T00:00:00', goal='test', happiness_score=8)); state.save()"`, { cwd: path.resolve(__dirname, '../../') });
 
   // Note: We changed to native API serving, but backend state.py still writes to disk 
   // so the legacy files exist for inspection. We read them to verify the schemas.
@@ -132,7 +132,7 @@ except Exception as e:
   fs.writeFileSync('/tmp/test_fault.py', pyScript);
   
   // Run the script.
-  execSync('python3 -m pip install pydantic pytest && PYTHONPATH=. python3 /tmp/test_fault.py', { cwd: path.resolve(__dirname, '../../') });
+  execSync('python3 -m pip install -r requirements.txt && PYTHONPATH=. python3 /tmp/test_fault.py', { cwd: path.resolve(__dirname, '../../') });
   
   // Read state and verify
   const statePath = path.resolve(__dirname, '../../session_state.json');
@@ -155,7 +155,7 @@ except Exception as e:
 
 test('Run the pytest suite to ensure tests pass, specifically verifying the JSON schema output of state.py and the error catching logic in overseer.py.', async ({ page }) => {
   // Execute the pytest suite. We run pytest on the tests directory using python module execution
-  const output = execSync('PYTHONPATH=. python3 -m pytest tests/test_core.py', { encoding: 'utf-8', cwd: path.resolve(__dirname, '../../') });
+  const output = execSync('python3 -m pip install -r requirements.txt && PYTHONPATH=. python3 -m pytest tests/test_core.py', { encoding: 'utf-8', cwd: path.resolve(__dirname, '../../') });
   
   // Verify that the tests passed
   expect(output).toContain('2 passed');
