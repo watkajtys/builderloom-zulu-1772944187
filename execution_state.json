@@ -4,7 +4,7 @@
     {
       "id": "1",
       "name": "loom-pocketbase",
-      "status": "running",
+      "status": "stopped",
       "image": "pocketbase/pocketbase",
       "ports": [
         "8090:8090"
@@ -22,7 +22,7 @@
     {
       "id": "3",
       "name": "loom-react",
-      "status": "running",
+      "status": "stopped",
       "image": "node:20-alpine",
       "ports": [
         "5173:5173"
@@ -33,8 +33,13 @@
     {
       "agentId": "jules-alpha",
       "state": "idle",
+<<<<<<< ours
       "currentTask": "Task TEST-1772939061579",
       "happinessScore": 8
+=======
+      "currentTask": "Waiting for task",
+      "happinessScore": 10
+>>>>>>> theirs
     },
     {
       "agentId": "overseer-beta",
@@ -44,8 +49,8 @@
     }
   ],
   "ui_metrics": {
-    "activeContainers": 3,
+    "activeContainers": 1,
     "agentCount": 2,
-    "systemHealth": 100
+    "systemHealth": 0
   }
 }

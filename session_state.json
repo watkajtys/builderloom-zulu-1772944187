@@ -8,7 +8,11 @@
   "current_iteration": 0,
   "active_branch": "main",
   "backlog": [],
+<<<<<<< ours
   "active_task_id": "TEST-1772939061579",
+=======
+  "active_task_id": "TEST-1772921813089",
+>>>>>>> theirs
   "inspiration_goal": "",
   "inspiration_target_route": "/",
   "inspiration_data_model": null,
@@ -21,11 +25,12 @@
   "active_jules_prompt": null,
   "active_jules_url": null,
   "active_jules_action": null,
-  "current_status": "Active",
+  "current_status": "CRITICAL_ERROR",
   "current_phase": "Inspiration",
   "pending_steer": [],
   "steering_history": [],
   "live_logs": [
+<<<<<<< ours
     "[03:00:25] INFO: Configuring Git identity...",
     "[03:00:25] INFO: Observer Dashboard running at http://localhost:8080/viewer/",
     "[03:00:25] INFO: BYPASS_OVERSEER is set. Keeping Viewer UI server alive...",
@@ -44,8 +49,20 @@
     "[03:04:16] INFO: Configuring Git identity...",
     "[03:04:16] INFO: Observer Dashboard running at http://localhost:8080/viewer/",
     "[03:04:16] INFO: BYPASS_OVERSEER is set. Keeping Viewer UI server alive..."
+=======
+    "[19:25:10] INFO: Configuring Git identity...",
+    "[19:25:10] INFO: Observer Dashboard running at http://localhost:8080/viewer/",
+    "[19:25:10] INFO: BYPASS_OVERSEER is set. Keeping Viewer UI server alive...",
+    "[19:25:42] INFO: Configuring Git identity...",
+    "[19:25:42] INFO: Observer Dashboard running at http://localhost:8080/viewer/",
+    "[19:25:42] INFO: BYPASS_OVERSEER is set. Keeping Viewer UI server alive...",
+    "[19:50:07] INFO: Configuring Git identity...",
+    "[19:50:07] INFO: Observer Dashboard running at http://localhost:8080/viewer/",
+    "[19:50:07] INFO: BYPASS_OVERSEER is set. Keeping Viewer UI server alive...",
+    "TELEMETRY_ERROR: Critical agent loop exception: Intentional Agent Node Failure"
+>>>>>>> theirs
   ],
-  "shutdown_requested": false,
+  "shutdown_requested": true,
   "update_scheduled": false,
   "db_stats": {}
 }
