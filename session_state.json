@@ -3,16 +3,16 @@
   "version": "v1.1",
   "logs": [
     {
-      "id": "2c03421e-9cce-4794-b5d2-7afad9252aa8",
-      "timestamp": "2026-03-08T10:04:09.582392Z",
+      "id": "2a6bc463-c401-4d6d-905d-9a388ed29cba",
+      "timestamp": "2026-03-08T10:21:31.547440Z",
       "agent": "test_runner",
       "level": "info",
       "message": "Starting Telemetry Loop",
       "metadata": {}
     },
     {
-      "id": "76fb0ce3-fdc9-4cdb-ab4b-23965aceefd2",
-      "timestamp": "2026-03-08T10:04:09.583516Z",
+      "id": "f21ba119-8dfc-43b6-bf96-b82295f43f33",
+      "timestamp": "2026-03-08T10:21:31.548936Z",
       "agent": "overseer",
       "level": "error",
       "message": "Intentional exception to test telemetry",
@@ -21,16 +21,16 @@
       }
     },
     {
-      "id": "f1a29144-01d5-433e-8a83-3e3cc9a55135",
-      "timestamp": "2026-03-08T10:04:10.566642Z",
+      "id": "34c88137-97cf-4232-8c1e-c3cdee5a2445",
+      "timestamp": "2026-03-08T10:21:32.460021Z",
       "agent": "test_runner",
       "level": "error",
       "message": "This is a critical system error that should remain visible.",
       "metadata": {}
     },
     {
-      "id": "6a7c8497-8f52-4e6b-b012-1ef3f84c476a",
-      "timestamp": "2026-03-08T10:04:10.567529Z",
+      "id": "a7c041a3-5728-4547-8609-6653a49f887d",
+      "timestamp": "2026-03-08T10:21:32.460829Z",
       "agent": "test_runner",
       "level": "info",
       "message": "This is a thought that should be hidden when filtered.",

@@ -276,6 +276,11 @@ state.save()
 });
 
 test('Verify dynamic import was removed and application fetches JSON properly avoiding Vite build failure', async ({ page }) => {
+  // Verify that index.html contains the relative path to prevent Vite module resolution failure
+  const indexPath = path.resolve(__dirname, '../index.html');
+  const indexRaw = fs.readFileSync(indexPath, 'utf8');
+  expect(indexRaw).toContain('src="./src/main.tsx"');
+
   // Take screenshot as evidence
   await page.goto('/');
   await expect(page.locator('text=BUILDERLOOM ZULU')).toBeVisible({ timeout: 10000 });
