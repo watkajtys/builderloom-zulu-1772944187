@@ -139,6 +139,13 @@ except Exception as e:
   await page.screenshot({ path: 'evidence.png' });
 });
 
+test('Verify relative path resolution for main.tsx resolves correctly and renders React app', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.locator('text=BUILDERLOOM ZULU')).toBeVisible({ timeout: 10000 });
+  await expect(page.locator('text=CORE_COMMAND_CENTER')).toBeVisible({ timeout: 10000 });
+  await page.screenshot({ path: 'evidence.png' });
+});
+
 test('Run the pytest suite to ensure tests pass, specifically verifying the JSON schema output of state.py and the error catching logic in overseer.py.', async ({ page }) => {
   // Execute the pytest suite. We run pytest on the tests directory using python module execution
   const output = execSync('python3 -m pip install -r requirements.txt && PYTHONPATH=. python3 -m pytest tests/test_core.py', { encoding: 'utf-8', cwd: path.resolve(__dirname, '../../') });
