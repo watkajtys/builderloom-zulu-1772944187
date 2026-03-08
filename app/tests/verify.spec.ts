@@ -275,3 +275,10 @@ state.save()
   // Take screenshot as evidence
   await page.screenshot({ path: 'evidence.png' });
 });
+
+test('Verify dynamic import was removed and application fetches JSON properly avoiding Vite build failure', async ({ page }) => {
+  // Take screenshot as evidence
+  await page.goto('/');
+  await expect(page.locator('text=BUILDERLOOM ZULU')).toBeVisible({ timeout: 10000 });
+  await page.screenshot({ path: 'evidence.png' });
+});

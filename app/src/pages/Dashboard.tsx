@@ -59,11 +59,14 @@ export default function Dashboard() {
         
         try {
             // Fallback for UI visualization offline testing
-            const MockData = await import('../../../session_state.json');
-            setVersion(MockData.default?.version || 'v1.1 (Mock Offline)');
-            setLogs(MockData.default?.logs || []);
-            setError(null);
-            return;
+            const mockRes = await fetch('/session_state.json');
+            if (mockRes.ok) {
+                const MockData = await mockRes.json();
+                setVersion(MockData.version || 'v1.1 (Mock Offline)');
+                setLogs(MockData.logs || []);
+                setError(null);
+                return;
+            }
         } catch(e) {}
 
         throw new Error("Cannot fetch telemetry data. PocketBase collection not found and Python backend unreachable.");
