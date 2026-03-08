@@ -67,7 +67,7 @@ class Overseer:
         # Iteration-specific state
         self.current_iteration_record = None
         self.current_brainstorm_output = None
-        self.happiness_score = 0
+        self.happiness_score = 0.0
         self.last_critique = ""
         self.app_screenshot = None
         self.app_screenshot_path = None
@@ -170,11 +170,11 @@ class Overseer:
                 return screenshot, logs
             return screenshot
 
-    def evaluate_architecture(self, branch_name: str) -> tuple[int, str, list]:
+    def evaluate_architecture(self, branch_name: str) -> tuple[float, str, list]:
         return self.architect.evaluate(app_meta=self.state.app_meta)
 
-    def evaluate_happiness(self, active_task: BacklogTask, target_route: str = "/") -> tuple[int, str, bytes]:
-        score = 10 
+    def evaluate_happiness(self, active_task: BacklogTask, target_route: str = "/") -> tuple[float, str, bytes]:
+        score = 10.0 
         critique = "No critique."
         app_screenshot = None
         try:
@@ -594,7 +594,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
                 # 3. EXECUTION PHASE
                 try:
                     # If happiness was already achieved on this task iteration, skip (resume logic)
-                    if self.current_iteration_record and self.current_iteration_record.happiness_score >= 8:
+                    if self.current_iteration_record and self.current_iteration_record.happiness_score >= 8.0:
                         logger.info("Happiness already achieved in this iteration. Skipping Design and Implementation.")
                         self.happiness_score = self.current_iteration_record.happiness_score
                         success_branch = self.current_iteration_record.successful_branch or branch_name
@@ -617,7 +617,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
                         time.sleep(3600)
                         continue
                     logger.error(f"Iteration aborted due to step error: {step_error}")
-                    self.happiness_score = 0
+                    self.happiness_score = 0.0
                     self.last_critique = f"Aborted during phase {self.state.current_phase}: {step_error}"
                     success_branch = branch_name
 
@@ -1414,7 +1414,7 @@ Example output:
                 self._check_shutdown()
             except Exception as e:
                 logger.error(f"Build failed: {e}")
-                self.happiness_score = 0
+                self.happiness_score = 0.0
                 self.last_critique = f"Jules run failed: {e}"
                 self._record_attempt(current_attempt, active_task)
             finally:
@@ -1423,14 +1423,14 @@ Example output:
                 self.state.active_jules_action = None
                 self.state.save()
             
-            if self.happiness_score >= 8: 
+            if self.happiness_score >= 8.0: 
                 self.current_iteration_record.successful_branch = branch_name
                 self.state.save()
                 break
             current_attempt += 1
 
         # If we failed to reach happiness after all attempts, push the remaining debt to the backlog
-        if self.happiness_score < 8 and final_refactoring_priorities:
+        if self.happiness_score < 8.0 and final_refactoring_priorities:
             import uuid
             from backend.state import TaskPriority, TaskType
             for p in final_refactoring_priorities:
@@ -1581,7 +1581,7 @@ CRITICAL RULES:
         self.state.save()
         
         # Reset score/critique for this attempt
-        self.happiness_score = 0
+        self.happiness_score = 0.0
         self.last_critique = ""
         self.app_screenshot = None
         self.app_screenshot_path = None
@@ -1592,14 +1592,14 @@ CRITICAL RULES:
             build_success, build_error = self._run_build()
             if not build_success:
                 logger.error(f"Build failed for attempt {attempt}: {build_error}")
-                self.happiness_score, self.last_critique = 0, f"Build error: {build_error}"
+                self.happiness_score, self.last_critique = 0.0, f"Build error: {build_error}"
             else:
                 logger.info("Build successful.")
                 # Test check
                 test_success, test_error = self._run_tests(attempt)
                 if not test_success:
                     logger.error(f"Tests failed for attempt {attempt}: {test_error}")
-                    self.happiness_score, self.last_critique = 0, f"Test error: {test_error}"
+                    self.happiness_score, self.last_critique = 0.0, f"Test error: {test_error}"
                     
                     # Generate a P0 Bugfix task if not already in a bugfix
                     if active_task.type != "bugfix":
@@ -1625,10 +1625,10 @@ CRITICAL RULES:
                     if active_task.requires_design:
                         self.happiness_score, self.last_critique, self.app_screenshot = self.evaluate_happiness(active_task, target_route=active_task.target_route)
                     else:
-                        self.happiness_score, self.last_critique = 10, "Logic update successful."
+                        self.happiness_score, self.last_critique = 10.0, "Logic update successful."
                     
                     # Arch check
-                    if self.happiness_score >= 8:
+                    if self.happiness_score >= 8.0:
                         arch_score, arch_critique, refactoring_priorities = self.evaluate_architecture(branch)
                         if arch_score < 8:
                             self.happiness_score, self.last_critique = arch_score, f"Visuals good, arch bad: {arch_critique}"
@@ -1637,7 +1637,7 @@ CRITICAL RULES:
                         self.current_iteration_record.architectural_critique = arch_critique
         except Exception as e:
             logger.error(f"Evaluation crashed: {e}")
-            self.happiness_score, self.last_critique = 0, f"Evaluation error: {str(e)}"
+            self.happiness_score, self.last_critique = 0.0, f"Evaluation error: {str(e)}"
 
         # ALWAYS Record attempt
         self._record_attempt(attempt, active_task)
@@ -1737,7 +1737,7 @@ CRITICAL RULES:
         self.state.repo_memory["learnings"].append({
             "iteration": self.state.current_iteration,
             "goal": active_task.description,
-            "success": self.happiness_score >= 8,
+            "success": self.happiness_score >= 8.0,
             "takeaways": learnings
         })
         self.state.save()
@@ -1765,7 +1765,7 @@ CRITICAL RULES:
 
     def _step_decision(self, branch, active_task: BacklogTask):
         self.state.current_phase = LoomPhase.DECISION.value
-        if self.happiness_score >= 8:
+        if self.happiness_score >= 8.0:
             logger.info(f"Happiness achieved on branch {branch}! Merging to main.")
             self.git.checkout_branch("main")
             try:
@@ -1805,7 +1805,7 @@ CRITICAL RULES:
                 self.git._run(["git", "clean", "-fd"], cwd="app")
                 
                 # If we don't have any previous successful iterations, the genesis project failed.
-                if not any(h.happiness_score >= 8 for h in self.state.history[:-1]):
+                if not any(h.happiness_score >= 8.0 for h in self.state.history[:-1]):
                     logger.warning("Genesis project failed. Resetting design state to restart 5-5-5 genesis.")
                     self.state.stitch_project_id = None
                     self.state.stitch_screen_id = None

@@ -58,17 +58,17 @@ class AgentProxy:
                 
         raise ValueError("Failed to parse JSON from response")
 
-    def _parse_score(self, text: str, tag: str) -> int:
-        """Robustly extract an integer score associated with a specific tag."""
+    def _parse_score(self, text: str, tag: str) -> float:
+        """Robustly extract a floating-point score associated with a specific tag."""
         # 1. Try finding the tag specifically: [TAG]: X or TAG: X
-        pattern = rf"{re.escape(tag)}[:\s]*(\d+)"
+        pattern = rf"{re.escape(tag)}[:\s]*(\d+(?:\.\d+)?)"
         match = re.search(pattern, text, re.IGNORECASE)
         if match:
-            return int(match.group(1))
+            return float(match.group(1))
             
         # 2. Look for the last number in the text (often the score line)
-        numbers = re.findall(r'\d+', text)
+        numbers = re.findall(r'\d+(?:\.\d+)?', text)
         if numbers:
-            return int(numbers[-1])
+            return float(numbers[-1])
             
-        return 5 # Neutral default
+        return 5.0 # Neutral default

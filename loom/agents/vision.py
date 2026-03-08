@@ -171,7 +171,7 @@ class VisionAgent(AgentProxy):
     # pylint: disable=too-many-arguments, too-many-locals, too-many-positional-arguments
     def evaluate_happiness(self, app_screenshot: bytes, ref_images: List[bytes],
                            app_meta: str, inspiration_goal: str, target_route: str,
-                           console_logs: Optional[List[str]] = None) -> Tuple[int, str]:
+                           console_logs: Optional[List[str]] = None) -> Tuple[float, str]:
         """Compares the actual running app against the target design reference to score it."""
         prompt = [
             f"You are the Overseer. Your goal was to implement: '{inspiration_goal}'.\n",
@@ -206,8 +206,8 @@ class VisionAgent(AgentProxy):
             logger.info("Vision Evaluation Critique:\n%s", critique)
 
             score = self._parse_score(critique, "[VISION_SCORE]")
-            score = max(0, min(10, score))
+            score = max(0.0, min(10.0, score))
             return score, critique
         except Exception as e: # pylint: disable=broad-exception-caught
             logger.error("Vision evaluation failed: %s", e)
-            return 5, f"Vision evaluation failed: {str(e)}"
+            return 5.0, f"Vision evaluation failed: {str(e)}"

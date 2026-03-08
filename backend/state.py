@@ -41,7 +41,7 @@ class AttemptRecord(BaseModel):
     jules_patch_path: Optional[str] = None
     jules_url: Optional[str] = None
     jules_action: Optional[str] = None
-    score: int
+    score: float
     critique: str
 
 class LoopIteration(BaseModel):
@@ -67,7 +67,7 @@ class LoopIteration(BaseModel):
     chosen_theme_path: Optional[str] = None
     theme_review_critique: Optional[str] = None
     attempts: List[AttemptRecord] = []
-    happiness_score: int = 0  # Final score of this iteration
+    happiness_score: float = 0.0  # Final score of this iteration
     successful_branch: Optional[str] = None
     abandoned: bool = False
     architectural_critique: Optional[str] = None

@@ -44,7 +44,7 @@ class ReflectionAgent(AgentProxy): # pylint: disable=too-few-public-methods
             raise
 
     def reflect_on_task(
-        self, active_task: BacklogTask, happiness_score: int, last_critique: str, app_meta: str
+        self, active_task: BacklogTask, happiness_score: float, last_critique: str, app_meta: str
     ) -> str:
         """
         Analyzes the outcome of a task and returns a concise learning summary.
