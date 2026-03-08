@@ -9,4 +9,3 @@ playwright-report
 test-results
 evidence.png
 jules.patch
-__pycache__/
