@@ -8,7 +8,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 test('App initializes correctly and renders dashboard components', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('http://127.0.0.1:5173/');
   await expect(page.locator('text=BUILDERLOOM ZULU')).toBeVisible({ timeout: 10000 });
 
   // Take screenshot as evidence
@@ -17,7 +17,7 @@ test('App initializes correctly and renders dashboard components', async ({ page
 
 test('Header renders dynamic title correctly based on route', async ({ page }) => {
   // Test Dashboard route
-  await page.goto('/');
+  await page.goto('http://127.0.0.1:5173/');
   await expect(page.locator('text=BUILDERLOOM ZULU')).toBeVisible({ timeout: 10000 });
 });
 
@@ -25,7 +25,7 @@ test('App fetches data independently avoiding useOrchestration god hook', async 
   // Use a dynamic ID to avoid false positives from stale files
   const dynamicTaskId = `TEST-STATS-${Date.now()}`;
   execSync(`python3 -m pip install -q --disable-pip-version-check -r requirements.txt > /dev/null 2>&1 && PYTHONPATH=. python3 -c "from backend.state import ConductorState; state = ConductorState.reset(); state.active_task_id = '${dynamicTaskId}'; state.current_status = 'Active'; state.db_stats = {'users': 1}; state.save()"`, { cwd: path.resolve(__dirname, '../../') });
-  await page.goto('/');
+  await page.goto('http://127.0.0.1:5173/');
 });
 
 test('Trigger an agentic state update and verify the generated state is split into product and execution states matching the new strictly versioned schema.', async ({ page }) => {
@@ -57,7 +57,7 @@ test('Trigger an agentic state update and verify the generated state is split in
   expect(execState.ui_metrics.agentCount).toBe(2);
 
   // Take screenshot as evidence
-  await page.goto('/');
+  await page.goto('http://127.0.0.1:5173/');
   await expect(page.locator('text=BUILDERLOOM ZULU')).toBeVisible({ timeout: 10000 });
   
   await page.screenshot({ path: 'evidence.png' });
@@ -124,13 +124,13 @@ except Exception as e:
 
   // Take screenshot of the viewer UI which should now show an error state if handled, 
   // or at least capture evidence of test completion.
-  await page.goto('/');
+  await page.goto('http://127.0.0.1:5173/');
   await expect(page.locator('text=BUILDERLOOM ZULU')).toBeVisible({ timeout: 10000 });
   await page.screenshot({ path: 'evidence.png' });
 });
 
 test('Verify relative path resolution for main.tsx resolves correctly and renders React app', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('http://127.0.0.1:5173/');
   await expect(page.locator('text=BUILDERLOOM ZULU')).toBeVisible({ timeout: 10000 });
   await expect(page.locator('text=CORE_COMMAND_CENTER')).toBeVisible({ timeout: 10000 });
   await page.screenshot({ path: 'evidence.png' });
@@ -144,7 +144,7 @@ test('Run the pytest suite to ensure tests pass, specifically verifying the JSON
   expect(output).toContain('2 passed');
 
   // Load the Viewer UI to take a screenshot
-  await page.goto('/');
+  await page.goto('http://127.0.0.1:5173/');
   await expect(page.locator('text=BUILDERLOOM ZULU')).toBeVisible({ timeout: 10000 });
 
   // Take screenshot as evidence
@@ -215,7 +215,7 @@ except Exception as e:
   expect(errorLog.id).toBeDefined();
   
   // Actually visit the frontend route to satisfy the screenshot requirement
-  await page.goto('/');
+  await page.goto('http://127.0.0.1:5173/');
   await expect(page.locator('text=BUILDERLOOM ZULU')).toBeVisible({ timeout: 10000 });
   
   await page.screenshot({ path: 'evidence.png' });
@@ -247,7 +247,7 @@ state.save()
   // Run the script
   execSync('python3 -m pip install -q --disable-pip-version-check -r requirements.txt > /dev/null 2>&1 && PYTHONPATH=. python3 /tmp/test_filter.py > /dev/null 2>&1', { cwd: path.resolve(__dirname, '../../') });
   
-  await page.goto('/');
+  await page.goto('http://127.0.0.1:5173/');
 
   // Let's ensure we are fully loaded by waiting for the new cybernetic title
   await expect(page.locator('text=BUILDERLOOM ZULU')).toBeVisible({ timeout: 10000 });
@@ -280,7 +280,7 @@ test('Verify dynamic import was removed and application fetches JSON properly av
   expect(indexRaw).toContain('src="src/main.tsx"');
 
   // Take screenshot as evidence
-  await page.goto('/');
+  await page.goto('http://127.0.0.1:5173/');
   await expect(page.locator('text=BUILDERLOOM ZULU')).toBeVisible({ timeout: 10000 });
   await page.screenshot({ path: 'evidence.png' });
 });
@@ -323,7 +323,7 @@ state.save()
   fs.writeFileSync('/tmp/test_viewer_ui_logs.py', pyScript);
   execSync('python3 -m pip install -q --disable-pip-version-check -r requirements.txt > /dev/null 2>&1 && PYTHONPATH=. python3 /tmp/test_viewer_ui_logs.py > /dev/null 2>&1', { cwd: path.resolve(__dirname, '../../') });
   
-  await page.goto('/');
+  await page.goto('http://127.0.0.1:5173/');
   await expect(page.locator('text=BUILDERLOOM ZULU')).toBeVisible({ timeout: 10000 });
   
   // Verify that the error log is rendered
