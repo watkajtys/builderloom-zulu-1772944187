@@ -3,38 +3,21 @@
   "version": "v1.1",
   "logs": [
     {
-      "id": "c10a36d5-11fb-4906-abf4-2e85e03df986",
-      "timestamp": "2026-03-08T11:37:03.247622Z",
-      "agent": "test_runner",
-      "level": "info",
-      "message": "Starting Telemetry Loop",
-      "metadata": {}
-    },
-    {
-      "id": "7fe23289-f0fa-4199-9e77-812989ea3f4e",
-      "timestamp": "2026-03-08T11:37:03.248753Z",
-      "agent": "overseer",
+      "id": "log-1",
+      "timestamp": "2024-03-08T12:00:00Z",
+      "agent": "test-agent",
       "level": "error",
-      "message": "Intentional exception to test telemetry",
+      "message": "Structured error log test",
       "metadata": {
-        "traceback": "Traceback (most recent call last):\n  File \"/tmp/test_telemetry.py\", line 21, in loop\n    raise ValueError(\"Intentional exception to test telemetry\")\nValueError: Intentional exception to test telemetry\n"
+        "reason": "testing"
       }
     },
     {
-      "id": "b38313bf-b5f3-4724-ad04-6ede0e79b5e0",
-      "timestamp": "2026-03-08T11:37:04.459037Z",
-      "agent": "test_runner",
-      "level": "error",
-      "message": "This is a critical system error that should remain visible.",
-      "metadata": {}
-    },
-    {
-      "id": "2b7d56f6-462f-4748-9175-2f95d2d12f14",
-      "timestamp": "2026-03-08T11:37:04.460078Z",
-      "agent": "test_runner",
+      "id": "log-2",
+      "timestamp": "2024-03-08T12:00:05Z",
+      "agent": "test-agent",
       "level": "info",
-      "message": "This is a thought that should be hidden when filtered.",
-      "metadata": {}
+      "message": "Structured info log test"
     }
   ],
   "project_name": "Loom Experiment",

@@ -286,3 +286,65 @@ test('Verify dynamic import was removed and application fetches JSON properly av
   await expect(page.locator('text=BUILDERLOOM ZULU')).toBeVisible({ timeout: 10000 });
   await page.screenshot({ path: 'evidence.png' });
 });
+
+test('Verify React Viewer UI correctly consumes, displays, and filters structured JSON logs', async ({ page }) => {
+  // Setup the mock state file for this test
+  const testLogs = [
+    {
+      "id": "log-1",
+      "timestamp": "2024-03-08T12:00:00Z",
+      "agent": "test-agent",
+      "level": "error",
+      "message": "Structured error log test",
+      "metadata": {"reason": "testing"}
+    },
+    {
+      "id": "log-2",
+      "timestamp": "2024-03-08T12:00:05Z",
+      "agent": "test-agent",
+      "level": "info",
+      "message": "Structured info log test"
+    }
+  ];
+  
+  const pyScript = `
+import os
+import sys
+import json
+
+os.chdir(os.path.abspath('.'))
+sys.path.insert(0, os.path.abspath('.'))
+
+from backend.state import ConductorState
+
+state = ConductorState.load()
+state.logs = ${JSON.stringify(testLogs)}
+state.save()
+`;
+  
+  fs.writeFileSync('/tmp/test_viewer_ui_logs.py', pyScript);
+  execSync('python3 -m pip install -r requirements.txt && PYTHONPATH=. python3 /tmp/test_viewer_ui_logs.py', { cwd: path.resolve(__dirname, '../../') });
+  
+  await page.goto('/');
+  await expect(page.locator('text=BUILDERLOOM ZULU')).toBeVisible({ timeout: 10000 });
+  
+  // Verify that the error log is rendered
+  const errorLogLocator = page.locator('text=Structured error log test').first();
+  await expect(errorLogLocator).toBeVisible({ timeout: 5000 });
+  
+  // Verify that the info log is rendered
+  const infoLogLocator = page.locator('text=Structured info log test').first();
+  await expect(infoLogLocator).toBeVisible({ timeout: 5000 });
+  
+  // Test filtering interaction
+  const infoFilterSpan = page.locator('text=LVL: SYSTEM_INFO');
+  await infoFilterSpan.click();
+  
+  // Assert 'info' log is hidden after toggling off SYSTEM_INFO
+  await expect(infoLogLocator).toBeHidden({ timeout: 5000 });
+  // Ensure error log is still visible
+  await expect(errorLogLocator).toBeVisible({ timeout: 5000 });
+
+  // Take screenshot as evidence
+  await page.screenshot({ path: 'evidence.png' });
+});
