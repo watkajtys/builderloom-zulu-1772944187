@@ -4,26 +4,24 @@ import pytest
 from backend.state import ConductorState, BacklogTask, TaskType, TaskPriority
 import backend.state
 
+import pathlib
+
 # Ensure files are cleared before and after each test
 @pytest.fixture(autouse=True)
-def clean_state_files():
+def clean_state_files(tmp_path, monkeypatch):
     # Setup
     backend.state._global_state = None
-    if os.path.exists("session_state.json"):
-        os.remove("session_state.json")
-    if os.path.exists("execution_state.json"):
-        os.remove("execution_state.json")
+    
+    # Patch STATE_FILE and EXECUTION_STATE_FILE to point to tmp_path
+    monkeypatch.setattr(backend.state, 'STATE_FILE', tmp_path / "session_state.json")
+    monkeypatch.setattr(backend.state, 'EXECUTION_STATE_FILE', tmp_path / "execution_state.json")
     
     yield
     
     # Teardown
     backend.state._global_state = None
-    if os.path.exists("session_state.json"):
-        os.remove("session_state.json")
-    if os.path.exists("execution_state.json"):
-        os.remove("execution_state.json")
 
-def test_state_instantiation_and_dump():
+def test_state_instantiation_and_dump(tmp_path):
     # Ensure it's empty to start
     assert backend.state._global_state is None
 
@@ -39,17 +37,17 @@ def test_state_instantiation_and_dump():
     state.save()
     
     # Verify files exist
-    assert os.path.exists("session_state.json")
-    assert os.path.exists("execution_state.json")
+    assert os.path.exists(tmp_path / "session_state.json")
+    assert os.path.exists(tmp_path / "execution_state.json")
     
     # Verify the saved content using native JSON load
-    with open("session_state.json", "r", encoding="utf-8") as f:
+    with open(tmp_path / "session_state.json", "r", encoding="utf-8") as f:
         session_data = json.load(f)
         assert session_data["project_name"] == "Test Project"
         # Since exclude was used, ensure ui_containers doesn't exist here
         assert "ui_containers" not in session_data
         
-    with open("execution_state.json", "r", encoding="utf-8") as f:
+    with open(tmp_path / "execution_state.json", "r", encoding="utf-8") as f:
         exec_data = json.load(f)
         assert exec_data["schema_version"] == "1.0.0"
         # Make sure ui components exist in execution

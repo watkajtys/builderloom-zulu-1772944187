@@ -10,7 +10,7 @@ export class ApiClient {
 
   async fetchTelemetryData(): Promise<TelemetryData> {
     try {
-      const res = await fetch('http://127.0.0.1:8080/state?_t=' + new Date().getTime());
+      const res = await fetch('http://127.0.0.1:8080/api/session_state?_t=' + new Date().getTime());
       if (res.ok) {
         const data = await res.json();
         return {
