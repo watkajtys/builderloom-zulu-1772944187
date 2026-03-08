@@ -24,14 +24,14 @@ test('Header renders dynamic title correctly based on route', async ({ page }) =
 test('App fetches data independently avoiding useOrchestration god hook', async ({ page }) => {
   // Use a dynamic ID to avoid false positives from stale files
   const dynamicTaskId = `TEST-STATS-${Date.now()}`;
-  execSync(`python3 -m pip install -r requirements.txt && PYTHONPATH=. python3 -c "from backend.state import ConductorState; state = ConductorState.reset(); state.active_task_id = '${dynamicTaskId}'; state.current_status = 'Active'; state.db_stats = {'users': 1}; state.save()"`, { cwd: path.resolve(__dirname, '../../') });
+  execSync(`python3 -m pip install -q --disable-pip-version-check -r requirements.txt > /dev/null 2>&1 && PYTHONPATH=. python3 -c "from backend.state import ConductorState; state = ConductorState.reset(); state.active_task_id = '${dynamicTaskId}'; state.current_status = 'Active'; state.db_stats = {'users': 1}; state.save()"`, { cwd: path.resolve(__dirname, '../../') });
   await page.goto('/');
 });
 
 test('Trigger an agentic state update and verify the generated state is split into product and execution states matching the new strictly versioned schema.', async ({ page }) => {
   // Use a dynamic ID to avoid false positives from stale files
   const dynamicTaskId = `TEST-${Date.now()}`;
-  execSync(`python3 -m pip install -r requirements.txt && PYTHONPATH=. python3 -c "from backend.state import ConductorState, LoopIteration; state = ConductorState.reset(); state.active_task_id = '${dynamicTaskId}'; state.current_status = 'Active'; state.history.append(LoopIteration(id=1, timestamp='2024-01-01T00:00:00', goal='test', happiness_score=8)); state.save()"`, { cwd: path.resolve(__dirname, '../../') });
+  execSync(`python3 -m pip install -q --disable-pip-version-check -r requirements.txt > /dev/null 2>&1 && PYTHONPATH=. python3 -c "from backend.state import ConductorState, LoopIteration; state = ConductorState.reset(); state.active_task_id = '${dynamicTaskId}'; state.current_status = 'Active'; state.history.append(LoopIteration(id=1, timestamp='2024-01-01T00:00:00', goal='test', happiness_score=8)); state.save()"`, { cwd: path.resolve(__dirname, '../../') });
   const statePath = path.resolve(__dirname, '../../session_state.json');
   const stateRaw = fs.readFileSync(statePath, 'utf8');
   const productState = JSON.parse(stateRaw);
@@ -91,9 +91,7 @@ class FaultyOverseer(Overseer):
             except Exception as e:
                 import traceback
                 error_trace = traceback.format_exc()
-                import logging
-                logger = logging.getLogger("loom")
-                logger.error(f"Critical loop error: {e}\\n{error_trace}")
+                # Omit printing to avoid test runner capturing stderr
                 self.state.add_log(f"TELEMETRY_ERROR: Critical agent loop exception: {e}")
                 self.state.current_status = "CRITICAL_ERROR"
                 self.state.shutdown_requested = True
@@ -110,7 +108,7 @@ except Exception as e:
   fs.writeFileSync('/tmp/test_fault.py', pyScript);
   
   // Run the script.
-  execSync('python3 -m pip install -r requirements.txt && PYTHONPATH=. python3 /tmp/test_fault.py', { cwd: path.resolve(__dirname, '../../') });
+  execSync('python3 -m pip install -q --disable-pip-version-check -r requirements.txt > /dev/null 2>&1 && PYTHONPATH=. python3 /tmp/test_fault.py > /dev/null 2>&1', { cwd: path.resolve(__dirname, '../../') });
   
   // Read state and verify
   const statePath = path.resolve(__dirname, '../../session_state.json');
@@ -140,7 +138,7 @@ test('Verify relative path resolution for main.tsx resolves correctly and render
 
 test('Run the pytest suite to ensure tests pass, specifically verifying the JSON schema output of state.py and the error catching logic in overseer.py.', async ({ page }) => {
   // Execute the pytest suite. We run pytest on the tests directory using python module execution
-  const output = execSync('python3 -m pip install -r requirements.txt && PYTHONPATH=. python3 -m pytest tests/test_core.py', { encoding: 'utf-8', cwd: path.resolve(__dirname, '../../') });
+  const output = execSync('python3 -m pip install -q --disable-pip-version-check -r requirements.txt > /dev/null 2>&1 && PYTHONPATH=. python3 -m pytest tests/test_core.py 2>/dev/null', { encoding: 'utf-8', cwd: path.resolve(__dirname, '../../') });
   
   // Verify that the tests passed
   expect(output).toContain('2 passed');
@@ -196,7 +194,7 @@ except Exception as e:
   fs.writeFileSync('/tmp/test_telemetry.py', pyScript);
   
   // Run the script
-  execSync('python3 -m pip install -r requirements.txt && PYTHONPATH=. python3 /tmp/test_telemetry.py', { cwd: path.resolve(__dirname, '../../') });
+  execSync('python3 -m pip install -q --disable-pip-version-check -r requirements.txt > /dev/null 2>&1 && PYTHONPATH=. python3 /tmp/test_telemetry.py > /dev/null 2>&1', { cwd: path.resolve(__dirname, '../../') });
   
   // Read state and verify
   const statePath = path.resolve(__dirname, '../../session_state.json');
@@ -247,7 +245,7 @@ state.save()
   fs.writeFileSync('/tmp/test_filter.py', pyScript);
   
   // Run the script
-  execSync('python3 -m pip install -r requirements.txt && PYTHONPATH=. python3 /tmp/test_filter.py', { cwd: path.resolve(__dirname, '../../') });
+  execSync('python3 -m pip install -q --disable-pip-version-check -r requirements.txt > /dev/null 2>&1 && PYTHONPATH=. python3 /tmp/test_filter.py > /dev/null 2>&1', { cwd: path.resolve(__dirname, '../../') });
   
   await page.goto('/');
 
@@ -323,7 +321,7 @@ state.save()
 `;
   
   fs.writeFileSync('/tmp/test_viewer_ui_logs.py', pyScript);
-  execSync('python3 -m pip install -r requirements.txt && PYTHONPATH=. python3 /tmp/test_viewer_ui_logs.py', { cwd: path.resolve(__dirname, '../../') });
+  execSync('python3 -m pip install -q --disable-pip-version-check -r requirements.txt > /dev/null 2>&1 && PYTHONPATH=. python3 /tmp/test_viewer_ui_logs.py > /dev/null 2>&1', { cwd: path.resolve(__dirname, '../../') });
   
   await page.goto('/');
   await expect(page.locator('text=BUILDERLOOM ZULU')).toBeVisible({ timeout: 10000 });
