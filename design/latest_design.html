@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>BuilderLoom Zulu: Core Command Center</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Fira+Code:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#135bec",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#0a0a0c",
+                        "slate-panel": "#141a26",
+                        "neon-green": "#00ff41",
+                        "neon-amber": "#ffb000",
+                        "neon-red": "#ff3e3e"
+                    },
+                    fontFamily: {
+                        "display": ["Space Grotesk", "sans-serif"],
+                        "mono": ["Fira Code", "monospace"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0px",
+                        "lg": "0px",
+                        "xl": "0px",
+                        "full": "0px"
+                    },
+                },
+            },
+        }
+    </script>
+<style type="text/tailwindcss">
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            letter-spacing: -0.01em;
+        }
+        .brutalist-border {
+            border: 2px solid #334155;
+        }
+        .log-stream::-webkit-scrollbar {
+            width: 8px;
+        }
+        .log-stream::-webkit-scrollbar-track {
+            background: #050505;
+        }
+        .log-stream::-webkit-scrollbar-thumb {
+            background: #1e293b;
+            border: 1px solid #334155;
+        }
+        .scanline {
+            width: 100%;
+            height: 2px;
+            background: rgba(0, 255, 65, 0.05);
+            position: absolute;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            z-index: 10;
+        }
+        .grid-bg {
+            background-image: radial-gradient(circle, #1e293b 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+    </style>
+</head>
+<body class="bg-background-dark text-slate-100 overflow-hidden h-screen flex flex-col selection:bg-neon-green selection:text-black">
+<header class="flex items-center justify-between px-6 py-3 bg-slate-panel border-b-4 border-slate-700 z-20">
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-neon-green text-3xl">hub</span>
+<div class="flex flex-col">
+<h1 class="font-display font-bold text-xl uppercase tracking-tighter leading-none">BUILDERLOOM ZULU</h1>
+<span class="text-[9px] font-mono text-neon-green tracking-[0.3em]">CORE_COMMAND_CENTER</span>
+</div>
+</div>
+<div class="h-8 w-px bg-slate-700"></div>
+<div class="flex gap-8">
+<div class="flex flex-col">
+<span class="text-[10px] text-slate-400 uppercase font-bold tracking-widest">PY_INTERPRETER</span>
+<div class="flex items-center gap-2">
+<span class="font-mono text-neon-green font-bold">3.11.5_ACT</span>
+<div class="w-16 h-2 bg-slate-900 brutalist-border overflow-hidden">
+<div class="h-full bg-neon-green w-[82%]"></div>
+</div>
+</div>
+</div>
+<div class="flex flex-col">
+<span class="text-[10px] text-slate-400 uppercase font-bold tracking-widest">DOCKER_CONTAINERS</span>
+<div class="flex items-center gap-2">
+<span class="font-mono text-primary font-bold">34_ACTIVE</span>
+<span class="material-symbols-outlined text-primary text-xs">layers</span>
+</div>
+</div>
+<div class="flex flex-col">
+<span class="text-[10px] text-slate-400 uppercase font-bold tracking-widest">REACT_RENDER_TICK</span>
+<div class="flex items-center gap-2">
+<span class="font-mono text-neon-amber font-bold">12ms</span>
+<div class="w-16 h-2 bg-slate-900 brutalist-border overflow-hidden">
+<div class="h-full bg-neon-amber w-[45%]"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="flex gap-2">
+<div class="flex items-center px-3 bg-slate-900 border border-slate-700 text-[10px] font-mono gap-2">
+<span class="w-2 h-2 rounded-full bg-neon-green animate-pulse"></span>
+                AUTO_EVOLVE: ON
+            </div>
+<button class="p-2 brutalist-border bg-slate-800 hover:bg-neon-green hover:text-black transition-colors">
+<span class="material-symbols-outlined text-sm">emergency_home</span>
+</button>
+</div>
+<div class="flex items-center gap-3 pl-4 border-l border-slate-700">
+<div class="text-right">
+<p class="text-xs font-bold font-mono">ROOT_ADMIN</p>
+<p class="text-[10px] text-neon-green font-mono">ZULU_SYNC_ACTIVE</p>
+</div>
+<div class="w-10 h-10 bg-slate-800 brutalist-border overflow-hidden grayscale contrast-125">
+<img class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDhLflloBb8Xba019QN0NCJwUgEFGDCVNR7mizvUWDBRoSgY0aj3Q8cXEXOltOMFiMsp5hRdh_nzhRJN3SgEQGGN30A8wWQ757nnC79RPkazDiuvPbYPxew3MTz_D0MXZPXVbx9tZ2uiLzWi7J8JYsC0P8PaWOoC-q0KfjgPj99DsREWsHvXDMoyaeqsmYyDmWgaduheN0yu8pHrNHLgAVlqWn6g9eVC8G9KPElSTRPZKQVUEJF1UZaiPoDHYS9T1CgwuIQWWolzIm5"/>
+</div>
+</div>
+</div>
+</header>
+<main class="flex flex-1 overflow-hidden p-2 gap-2 bg-black grid-bg">
+<aside class="w-72 bg-slate-panel brutalist-border p-4 flex flex-col gap-6 overflow-y-auto">
+<div>
+<h3 class="text-xs font-bold text-slate-400 mb-4 uppercase tracking-[0.2em] border-b border-slate-700 pb-1">TELEMETRY FILTER</h3>
+<div class="space-y-4">
+<div class="flex flex-col gap-3">
+<div class="flex items-center justify-between p-2 bg-slate-900 border border-slate-700">
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 bg-neon-green"></div>
+<span class="text-xs font-mono">LVL: SYSTEM_INFO</span>
+</div>
+<div class="w-10 h-5 bg-primary relative cursor-pointer border border-white/20">
+<div class="absolute right-0 top-0 bottom-0 w-5 bg-white border border-slate-900 shadow-inner"></div>
+</div>
+</div>
+<div class="flex items-center justify-between p-2 bg-slate-900 border border-slate-700">
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 bg-neon-amber"></div>
+<span class="text-xs font-mono">LVL: ANOMALY_WRN</span>
+</div>
+<div class="w-10 h-5 bg-primary relative cursor-pointer border border-white/20">
+<div class="absolute right-0 top-0 bottom-0 w-5 bg-white border border-slate-900 shadow-inner"></div>
+</div>
+</div>
+<div class="flex items-center justify-between p-2 bg-slate-900 border border-slate-700">
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 bg-neon-red"></div>
+<span class="text-xs font-mono">LVL: CRITICAL_ERR</span>
+</div>
+<div class="w-10 h-5 bg-slate-800 relative cursor-pointer border border-slate-700">
+<div class="absolute left-0 top-0 bottom-0 w-5 bg-slate-500 border border-slate-900 shadow-inner"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="space-y-6">
+<h3 class="text-xs font-bold text-slate-400 uppercase tracking-[0.2em] border-b border-slate-700 pb-1">ANALYSIS PARAMS</h3>
+<div class="grid grid-cols-2 gap-4">
+<div class="flex flex-col items-center gap-2">
+<div class="w-16 h-16 brutalist-border bg-slate-900 relative flex items-center justify-center">
+<div class="absolute w-1 h-7 bg-primary top-1 origin-bottom rotate-45 shadow-[0_0_8px_rgba(19,91,236,0.6)]"></div>
+<div class="w-10 h-10 border border-slate-700 flex items-center justify-center bg-black/40">
+<span class="text-[10px] font-mono text-primary font-bold">FRQ</span>
+</div>
+</div>
+<span class="text-[10px] font-bold text-slate-500 font-mono">GEN_PULSE</span>
+</div>
+<div class="flex flex-col items-center gap-2">
+<div class="w-16 h-16 brutalist-border bg-slate-900 relative flex items-center justify-center">
+<div class="absolute w-1 h-7 bg-neon-amber top-1 origin-bottom -rotate-12 shadow-[0_0_8px_rgba(255,176,0,0.6)]"></div>
+<div class="w-10 h-10 border border-slate-700 flex items-center justify-center bg-black/40">
+<span class="text-[10px] font-mono text-neon-amber font-bold">SNS</span>
+</div>
+</div>
+<span class="text-[10px] font-bold text-slate-500 font-mono">NEURAL_SNS</span>
+</div>
+</div>
+</div>
+<div class="mt-auto pt-6 border-t border-slate-700">
+<h3 class="text-xs font-bold text-slate-400 mb-3 uppercase tracking-[0.2em]">SOURCE NODES</h3>
+<div class="space-y-2">
+<label class="flex items-center gap-2 cursor-pointer p-1 hover:bg-slate-800 border border-transparent hover:border-slate-600">
+<input checked="" class="w-3 h-3 rounded-none bg-black border-slate-700 text-primary focus:ring-0" type="checkbox"/>
+<span class="text-[11px] font-mono uppercase">ZULU_EVOLVER_01</span>
+</label>
+<label class="flex items-center gap-2 cursor-pointer p-1 hover:bg-slate-800 border border-transparent hover:border-slate-600">
+<input checked="" class="w-3 h-3 rounded-none bg-black border-slate-700 text-primary focus:ring-0" type="checkbox"/>
+<span class="text-[11px] font-mono uppercase">PY_LOGIC_FABRIC</span>
+</label>
+<label class="flex items-center gap-2 cursor-pointer p-1 hover:bg-slate-800 border border-transparent hover:border-slate-600">
+<input class="w-3 h-3 rounded-none bg-black border-slate-700 text-primary focus:ring-0" type="checkbox"/>
+<span class="text-[11px] font-mono uppercase">UI_REACT_ORBIT</span>
+</label>
+</div>
+</div>
+<button class="w-full bg-neon-red/10 border-2 border-neon-red text-neon-red py-3 font-bold text-xs uppercase tracking-widest mt-4 hover:bg-neon-red hover:text-black transition-all">
+            FORCED_RECALIBRATION
+        </button>
+</aside>
+<section class="flex-1 flex flex-col brutalist-border bg-black relative overflow-hidden">
+<div class="scanline"></div>
+<div class="bg-slate-panel p-3 border-b-2 border-slate-700 flex justify-between items-center z-20">
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-neon-green text-sm">precision_manufacturing</span>
+<span class="text-[10px] font-bold uppercase tracking-widest text-slate-200">ZULU_STRUCTURED_TELEMETRY</span>
+</div>
+<div class="flex gap-2">
+<span class="px-2 py-0.5 bg-neon-green/10 border border-neon-green text-neon-green text-[9px] font-bold">LIVING_FACTORY_OK</span>
+<span class="px-2 py-0.5 bg-slate-900 border border-slate-700 text-slate-500 text-[9px] font-bold">QUEUE: 0.04ms</span>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<span class="text-[10px] font-mono text-slate-500 uppercase">SYS_CLOCK: [INTERNAL]</span>
+<button class="material-symbols-outlined text-slate-400 hover:text-neon-green text-sm">terminal</button>
+<button class="material-symbols-outlined text-slate-400 hover:text-neon-green text-sm">settings_input_component</button>
+</div>
+</div>
+<div class="flex-1 overflow-y-auto log-stream p-4 font-mono text-[13px] leading-relaxed relative bg-[rgba(0,0,0,0.8)]">
+<div class="flex gap-4 mb-2 hover:bg-slate-900/50 p-1 group border-l-2 border-transparent hover:border-neon-green transition-all">
+<span class="text-slate-600 shrink-0">T+04:12.001</span>
+<span class="text-neon-green shrink-0 font-bold">[SYS_INIT]</span>
+<div class="text-slate-100 flex-1">
+<span class="text-slate-500">{</span>
+<span class="text-primary">"module"</span><span class="text-slate-500">:</span> <span class="text-neon-amber">"python_runtime"</span>, 
+                    <span class="text-primary">"action"</span><span class="text-slate-500">:</span> <span class="text-neon-amber">"factory_reseed"</span>,
+                    <span class="text-primary">"status"</span><span class="text-slate-500">:</span> <span class="text-neon-green">"SUCCESS"</span>
+<span class="text-slate-500">}</span>
+</div>
+</div>
+<div class="flex gap-4 mb-2 hover:bg-slate-900/50 p-1 group border-l-2 border-transparent hover:border-neon-amber">
+<span class="text-slate-600 shrink-0">T+04:12.842</span>
+<span class="text-neon-amber shrink-0 font-bold">[ANOMALY]</span>
+<div class="text-slate-100 flex-1">
+<span class="text-slate-500">{</span>
+<span class="text-primary">"source"</span><span class="text-slate-500">:</span> <span class="text-neon-amber">"docker_daemon"</span>, 
+                    <span class="text-primary">"msg"</span><span class="text-slate-500">:</span> <span class="text-neon-amber">"layer_drift_detected"</span>,
+                    <span class="text-primary">"delta"</span><span class="text-slate-500">:</span> <span class="text-neon-green">0.0034</span>
+<span class="text-slate-500">}</span>
+</div>
+</div>
+<div class="flex gap-4 mb-2 bg-primary/5 p-1 group border-l-2 border-primary">
+<span class="text-slate-600 shrink-0">T+04:13.119</span>
+<span class="text-primary shrink-0 font-bold">[EVOLVE]</span>
+<div class="text-slate-100 flex-1">
+<span class="text-slate-500">{</span>
+<span class="text-primary">"optimization"</span><span class="text-slate-500">:</span> <span class="text-neon-amber">"react_vdom_reconciliation"</span>, 
+                    <span class="text-primary">"gain"</span><span class="text-slate-500">:</span> <span class="text-neon-green">"14.2%"</span>
+<span class="text-slate-500">}</span>
+</div>
+</div>
+<div class="flex gap-4 mb-2 bg-neon-red/10 border-l-2 border-neon-red p-1 group">
+<span class="text-slate-600 shrink-0">T+04:15.550</span>
+<span class="text-neon-red shrink-0 font-bold">[HALT!!]</span>
+<div class="text-slate-100 flex-1">
+<span class="text-slate-500">{</span>
+<span class="text-primary">"error_code"</span><span class="text-slate-500">:</span> <span class="text-neon-red">"Z_OVERFLOW"</span>, 
+                    <span class="text-primary">"stack"</span><span class="text-slate-500">:</span> <span class="text-neon-amber">"builderloom.core.logic.zulu_loop"</span>
+<span class="text-slate-500">}</span>
+</div>
+</div>
+<div class="flex gap-4 mb-2 hover:bg-slate-900/50 p-1 group">
+<span class="text-slate-600 shrink-0">T+04:16.002</span>
+<span class="text-neon-green shrink-0 font-bold">[INFO]</span>
+<div class="text-slate-100 flex-1">
+<span class="text-slate-500">{</span>
+<span class="text-primary">"process"</span><span class="text-slate-500">:</span> <span class="text-neon-amber">"self_healing"</span>, 
+                    <span class="text-primary">"outcome"</span><span class="text-slate-500">:</span> <span class="text-neon-green">"PATCH_APPLIED"</span>
+<span class="text-slate-500">}</span>
+</div>
+</div>
+<div class="flex gap-4 mb-2 hover:bg-slate-900/50 p-1 group">
+<span class="text-slate-600 shrink-0">T+04:17.221</span>
+<span class="text-neon-green shrink-0 font-bold">[INFO]</span>
+<div class="text-slate-100 flex-1">
+<span class="text-slate-500">{</span>
+<span class="text-primary">"thread"</span><span class="text-slate-500">:</span> <span class="text-neon-amber">"Worker-Z12"</span>, 
+                    <span class="text-primary">"payload"</span><span class="text-slate-500">:</span> <span class="text-neon-amber">"batch_gen_complete"</span>,
+                    <span class="text-primary">"objects"</span><span class="text-slate-500">:</span> <span class="text-neon-green">5120</span>
+<span class="text-slate-500">}</span>
+</div>
+</div>
+<div class="flex gap-4 mb-2 hover:bg-slate-900/50 p-1 group">
+<span class="text-slate-600 shrink-0">T+04:18.402</span>
+<span class="text-neon-green shrink-0 font-bold">[INFO]</span>
+<div class="text-slate-100 flex-1">
+<span class="text-slate-500">{</span>
+<span class="text-primary">"factory"</span><span class="text-slate-500">:</span> <span class="text-neon-amber">"state_stable"</span>,
+                    <span class="text-primary">"load_bal"</span><span class="text-slate-500">:</span> <span class="text-neon-green">0.999</span>
+<span class="text-slate-500">}</span>
+</div>
+</div>
+</div>
+<div class="bg-slate-900 p-2 border-t-2 border-slate-700 flex gap-2 z-20">
+<span class="text-neon-green font-bold px-2 py-1 font-mono text-sm">ZULU_CLI_&gt;</span>
+<input class="flex-1 bg-black border-none text-neon-green font-mono focus:ring-0 placeholder:text-slate-800 text-sm" placeholder="exec --zulu-core 'rebuild_neural_links' --force" type="text"/>
+<div class="flex gap-1">
+<kbd class="bg-slate-800 border border-slate-700 text-[9px] px-2 py-1 text-slate-500 font-mono">EXECUTE</kbd>
+<kbd class="bg-slate-800 border border-slate-700 text-[9px] px-2 py-1 text-slate-500 font-mono">ENTER</kbd>
+</div>
+</div>
+</section>
+<aside class="w-80 flex flex-col gap-2">
+<div class="h-64 brutalist-border bg-slate-panel flex flex-col">
+<div class="p-2 border-b border-slate-700 flex justify-between bg-slate-900/50">
+<span class="text-[10px] font-bold uppercase font-mono tracking-widest text-slate-400">FACTORY_TOPOLOGY</span>
+<span class="text-[10px] text-neon-green font-mono">SYNCING...</span>
+</div>
+<div class="flex-1 bg-black relative p-2 overflow-hidden">
+<img class="w-full h-full object-cover opacity-40 mix-blend-screen" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAu84qKj_f7L6Gy_1CyfNKMfJzJ521yR1Wz4yx1tnwquTTkwiDJPIPeo4X8qcHRfqkmBjQyy-ERhcvStzFbo3iv7pQluqH1UusjM6UQKksDxrluuwbgN-QgEI0-OI9B-kzv-Fg-Nentby0lJtCJ2tYV_9LQCrSfev5VKNbfLTYxj5KpCXPQ9rX-_jbirBxtQ2Em8EMo2oF75hQCB3vRxGLojdVABK5jQ8aUa07bF_Xn17mydyHkKeKQLL43DnFfxzCRn-hexlDaGVPz"/>
+<div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+<div class="w-32 h-32 border border-primary/20 flex items-center justify-center">
+<div class="w-24 h-24 border border-neon-green/40 animate-pulse"></div>
+</div>
+</div>
+<div class="absolute bottom-2 left-2 text-[8px] font-mono text-primary bg-black/80 px-1">Loom_Node: 09_ZULU</div>
+</div>
+</div>
+<div class="flex-1 brutalist-border bg-slate-panel flex flex-col">
+<div class="p-2 border-b border-slate-700 bg-slate-900/50">
+<span class="text-[10px] font-bold uppercase font-mono tracking-widest text-slate-400">EVOLUTION_THROUGHPUT</span>
+</div>
+<div class="flex-1 p-4 flex flex-col gap-4">
+<div class="flex-1 flex items-end gap-1">
+<div class="flex-1 bg-primary/20 h-[30%] border-t border-primary/40"></div>
+<div class="flex-1 bg-primary/20 h-[45%] border-t border-primary/40"></div>
+<div class="flex-1 bg-primary/20 h-[25%] border-t border-primary/40"></div>
+<div class="flex-1 bg-primary/40 h-[60%] border-t border-primary/60"></div>
+<div class="flex-1 bg-neon-green h-[90%] shadow-[0_0_10px_#00ff41]"></div>
+<div class="flex-1 bg-primary/60 h-[50%] border-t border-primary"></div>
+<div class="flex-1 bg-primary/30 h-[40%]"></div>
+<div class="flex-1 bg-primary/20 h-[35%]"></div>
+<div class="flex-1 bg-primary/50 h-[75%]"></div>
+<div class="flex-1 bg-primary/20 h-[20%]"></div>
+</div>
+<div class="grid grid-cols-2 gap-2">
+<div class="p-2 bg-black brutalist-border">
+<p class="text-[8px] text-slate-500 uppercase font-bold font-mono">HEURISTIC_GAIN</p>
+<p class="text-sm font-mono text-neon-green">+4.12%</p>
+</div>
+<div class="p-2 bg-black brutalist-border">
+<p class="text-[8px] text-slate-500 uppercase font-bold font-mono">LATENCY_RED</p>
+<p class="text-sm font-mono text-neon-amber">-18 ms</p>
+</div>
+</div>
+</div>
+</div>
+<div class="h-32 brutalist-border bg-slate-panel flex flex-col">
+<div class="p-2 border-b border-slate-700 bg-neon-red/10">
+<span class="text-[10px] font-bold text-neon-red uppercase font-mono tracking-tighter">ZULU_INTEGRITY_ALERTS (0)</span>
+</div>
+<div class="flex-1 overflow-y-auto p-2 space-y-2 bg-black">
+<div class="flex items-center gap-2 p-2 bg-slate-900/50 border border-slate-800">
+<span class="material-symbols-outlined text-neon-green text-xs">check_circle</span>
+<span class="text-[10px] font-mono text-slate-400">ALL_ZULU_NODES_NOMINAL</span>
+</div>
+<div class="flex items-center gap-2 p-2 bg-slate-900/50 border border-slate-800">
+<span class="material-symbols-outlined text-primary text-xs">info</span>
+<span class="text-[10px] font-mono text-slate-400">DOCKER_IMAGE_REGEN_QUEUE</span>
+</div>
+</div>
+</div>
+</aside>
+</main>
+<footer class="bg-primary text-white h-6 flex items-center justify-between px-4 text-[10px] font-bold uppercase tracking-widest border-t-2 border-white/20">
+<div class="flex gap-4">
+<span class="flex items-center gap-1 font-mono"><span class="w-2 h-2 bg-white animate-pulse"></span> ZULU_CORE: STABLE</span>
+<span class="font-mono">KERNEL: BL_v9.2.0</span>
+<span class="font-mono">LOC: SUBTERRANEAN_NODE_4</span>
+</div>
+<div class="flex gap-4 font-mono">
+<span class="hidden md:inline">FABRIC_UPTIME: 91,004:12:04</span>
+<span class="hidden md:inline">CRYPT: ZULU_E2EE</span>
+<span class="bg-white text-primary px-2" id="clock">14:22:15 UTC</span>
+</div>
+</footer>
+
+</body></html>
