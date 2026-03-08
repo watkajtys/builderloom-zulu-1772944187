@@ -6,12 +6,10 @@ import Telemetry from './pages/Telemetry';
 export default function App() {
   return (
     <Router>
-      <Layout>
-        <Routes>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/backend/telemetry" element={<Telemetry />} />
-        </Routes>
-      </Layout>
+      <Routes>
+        <Route path="/" element={<Dashboard />} />
+        <Route path="/backend/telemetry" element={<Layout><Telemetry /></Layout>} />
+      </Routes>
     </Router>
   )
 }
