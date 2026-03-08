@@ -174,6 +174,21 @@ except Exception as e:
   await page.screenshot({ path: 'evidence.png' });
 });
 
+test('Verify fixing of @tanstack/react-query import error from previous attempts', async ({ page }) => {
+  // Since we had an issue resolving @tanstack/react-query due to missing dependencies, 
+  // ensuring the root application mounts successfully verifies that our package.json 
+  // alignment correctly passes the Rollup module resolution.
+  const packageJsonPath = path.resolve(__dirname, '../../package.json');
+  const packageRaw = fs.readFileSync(packageJsonPath, 'utf8');
+  expect(packageRaw).toContain('@tanstack/react-query');
+
+  await page.goto('http://127.0.0.1:5173/');
+  // Verify main text renders correctly to ensure that the React Query Providers mounted successfully.
+  await expect(page.locator('text=BUILDERLOOM ZULU')).toBeVisible({ timeout: 10000 });
+  
+  await page.screenshot({ path: 'evidence.png' });
+});
+
 test('Verify that test runner does not delete or pollute the main session_state.json and execution_state.json files', async ({ page }) => {
   console.log('Testing that test_core.py execution keeps original state files intact');
   
