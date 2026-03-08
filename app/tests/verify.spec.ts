@@ -24,22 +24,14 @@ test('Header renders dynamic title correctly based on route', async ({ page }) =
 test('App fetches data independently avoiding useOrchestration god hook', async ({ page }) => {
   // Use a dynamic ID to avoid false positives from stale files
   const dynamicTaskId = `TEST-STATS-${Date.now()}`;
-  
-  // Trigger state update directly via Python backend to ensure it's generated natively
-  execSync(`python3 -m pip install -r requirements.txt && PYTHONPATH=. python3 -c "from backend.state import ConductorState; state = ConductorState.load(); state.active_task_id = '${dynamicTaskId}'; state.current_status = 'Active'; state.db_stats = {'users': 1}; state.save()"`, { cwd: path.resolve(__dirname, '../../') });
-
+  execSync(`python3 -m pip install -r requirements.txt && PYTHONPATH=. python3 -c "from backend.state import ConductorState; state = ConductorState.reset(); state.active_task_id = '${dynamicTaskId}'; state.current_status = 'Active'; state.db_stats = {'users': 1}; state.save()"`, { cwd: path.resolve(__dirname, '../../') });
   await page.goto('/');
 });
 
 test('Trigger an agentic state update and verify the generated state is split into product and execution states matching the new strictly versioned schema.', async ({ page }) => {
   // Use a dynamic ID to avoid false positives from stale files
   const dynamicTaskId = `TEST-${Date.now()}`;
-  
-  // Trigger state update directly via Python backend to ensure it's generated natively
-  execSync(`python3 -m pip install -r requirements.txt && PYTHONPATH=. python3 -c "from backend.state import ConductorState, LoopIteration; state = ConductorState.load(); state.active_task_id = '${dynamicTaskId}'; state.current_status = 'Active'; state.history.append(LoopIteration(id=1, timestamp='2024-01-01T00:00:00', goal='test', happiness_score=8)); state.save()"`, { cwd: path.resolve(__dirname, '../../') });
-
-  // Note: We changed to native API serving, but backend state.py still writes to disk 
-  // so the legacy files exist for inspection. We read them to verify the schemas.
+  execSync(`python3 -m pip install -r requirements.txt && PYTHONPATH=. python3 -c "from backend.state import ConductorState, LoopIteration; state = ConductorState.reset(); state.active_task_id = '${dynamicTaskId}'; state.current_status = 'Active'; state.history.append(LoopIteration(id=1, timestamp='2024-01-01T00:00:00', goal='test', happiness_score=8)); state.save()"`, { cwd: path.resolve(__dirname, '../../') });
   const statePath = path.resolve(__dirname, '../../session_state.json');
   const stateRaw = fs.readFileSync(statePath, 'utf8');
   const productState = JSON.parse(stateRaw);
