@@ -56,7 +56,7 @@ class ArchitectAgent(AgentProxy): # pylint: disable=too-few-public-methods
 
             # Using npx --yes to auto-install madge if it's somehow missing
             # Using --ts-config if we wanted to be super strict, but default is fine for Vite
-            output = self._run(["npx", "--yes", "madge", "--json", "src/"], cwd=app_dir)
+            output = self._run(["npx", "--yes", "madge", "--extensions", "ts,tsx,js,jsx", "--json", "src/"], cwd=app_dir)
 
             # The output of madge --json might have npm warnings. We extract just the JSON.
             try:

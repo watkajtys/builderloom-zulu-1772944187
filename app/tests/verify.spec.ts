@@ -371,3 +371,43 @@ test('Verify Build Error fix in the CI runner', async ({ page }) => {
     expect(rootViteConfigRaw).toContain("outDir: '../dist'");
   }
 });
+
+// Test addition to verify the madge architect analysis fixes
+test('Verify the internal Architect agent correctly parses React application structure and detects source files', async ({ page }) => {
+  console.log('Testing that the Architect Agent can analyze the React source code and generate a valid dependency graph without returning 0 files.');
+  
+  const pyScript = `
+import os
+import sys
+import json
+
+os.chdir(os.path.abspath('.'))
+sys.path.insert(0, os.path.abspath('.'))
+
+from loom.agents.architect import ArchitectAgent
+
+arch = ArchitectAgent()
+score, critique, priorities = arch.evaluate("Test Application Meta", app_dir="app")
+
+# Dump result to temp file
+with open('/tmp/test_architect_eval.json', 'w') as f:
+    json.dump({"score": score, "critique": critique, "priorities": priorities}, f)
+`;
+
+  fs.writeFileSync('/tmp/test_architect_eval.py', pyScript);
+  
+  // Run the script. Wait for it to finish and produce the json file.
+  execSync('python3 -m pip install -q --disable-pip-version-check -r requirements.txt > /dev/null 2>&1 && PYTHONPATH=. python3 /tmp/test_architect_eval.py > /dev/null 2>&1', { cwd: path.resolve(__dirname, '../../') });
+  
+  // Verify that the Architect produced output
+  const outputRaw = fs.readFileSync('/tmp/test_architect_eval.json', 'utf8');
+  const result = JSON.parse(outputRaw);
+  
+  // Check that the critique does NOT complain about "0 files" or "vaporware shell"
+  expect(result.critique).toBeDefined();
+  expect(result.critique.toLowerCase()).not.toContain('0 source files');
+  
+  // It should parse some score and priorities
+  expect(typeof result.score).toBe('number');
+  expect(Array.isArray(result.priorities)).toBe(true);
+});
