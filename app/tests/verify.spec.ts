@@ -255,7 +255,7 @@ state.save()
   await expect(page.locator('text=BUILDERLOOM ZULU')).toBeVisible({ timeout: 10000 });
   
   // Ensure the logs are visible first
-  const thoughtLog = page.locator('text=This is a thought that should be hidden when filtered.');
+  const thoughtLog = page.locator('text=This is a thought that should be hidden when filtered.').first();
   await expect(thoughtLog).toBeVisible({ timeout: 5000 });
 
   // Toggle off SYSTEM_INFO filter so info/thought logs hide
@@ -266,7 +266,7 @@ state.save()
   await expect(thoughtLog).toBeHidden({ timeout: 5000 });
 
   // Click CRITICAL_ERR which activates error only
-  const errorLog = page.locator('text=This is a critical system error that should remain visible.');
+  const errorLog = page.locator('text=This is a critical system error that should remain visible.').first();
   
   // Assert 'error' log remains visible (since CRITICAL_ERR is on by default, and we only disabled SYSTEM_INFO)
   await expect(errorLog).toBeVisible({ timeout: 5000 });
