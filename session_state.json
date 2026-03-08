@@ -1,0 +1,77 @@
+{
+  "schema_version": "1.0.0",
+  "version": "v1.1",
+  "logs": [
+    {
+      "id": "42ecb124-c2e8-429e-a9cf-5931ee544513",
+      "timestamp": "2026-03-08T20:17:18.784931Z",
+      "agent": "TestAgent",
+      "level": "info",
+      "message": "Visual verification of structured logs UI",
+      "metadata": {}
+    },
+    {
+      "id": "f077131c-a54c-48fd-81c7-96a9b8027452",
+      "timestamp": "2026-03-08T20:17:18.785813Z",
+      "agent": "TestAgent",
+      "level": "error",
+      "message": "Testing error styling",
+      "metadata": {}
+    },
+    {
+      "id": "e1547b52-cc46-4858-9418-ca8c9b845df6",
+      "timestamp": "2026-03-08T20:17:47.003596Z",
+      "agent": "test",
+      "level": "info",
+      "message": "Visual verification of structured logs UI",
+      "metadata": {}
+    },
+    {
+      "id": "36e6ea1a-34e7-4e0f-8f4d-c2596bbc331e",
+      "timestamp": "2026-03-08T20:18:06.336867Z",
+      "agent": "test",
+      "level": "info",
+      "message": "Visual verification of structured logs UI",
+      "metadata": {}
+    }
+  ],
+  "project_name": "Loom Experiment",
+  "app_meta": "",
+  "product_phase": "Phase 1: Core Loop MVP",
+  "product_roadmap": "",
+  "repo_memory": {},
+  "current_iteration": 0,
+  "active_branch": "main",
+  "backlog": [],
+  "active_task_id": null,
+  "inspiration_goal": "",
+  "inspiration_target_route": "/",
+  "inspiration_data_model": null,
+  "inspiration_requires_design": true,
+  "inspiration_mode": "design",
+  "inspiration_test_scenario": "",
+  "history": [],
+  "stitch_project_id": null,
+  "stitch_screen_id": null,
+  "active_jules_prompt": null,
+  "active_jules_url": null,
+  "active_jules_action": null,
+  "current_status": "Idle",
+  "current_phase": "Inspiration",
+  "pending_steer": [],
+  "steering_history": [],
+  "live_logs": [
+    "[20:17:16] INFO: Configuring Git identity...",
+    "[20:17:16] INFO: Observer Dashboard running at http://localhost:8080/viewer/",
+    "[20:17:16] INFO: BYPASS_OVERSEER is set. Keeping Viewer UI server alive...",
+    "[20:17:45] INFO: Configuring Git identity...",
+    "[20:17:45] INFO: Observer Dashboard running at http://localhost:8080/viewer/",
+    "[20:17:45] INFO: BYPASS_OVERSEER is set. Keeping Viewer UI server alive...",
+    "[20:18:05] INFO: Configuring Git identity...",
+    "[20:18:05] INFO: Observer Dashboard running at http://localhost:8080/viewer/",
+    "[20:18:05] INFO: BYPASS_OVERSEER is set. Keeping Viewer UI server alive..."
+  ],
+  "shutdown_requested": false,
+  "update_scheduled": false,
+  "db_stats": {}
+}

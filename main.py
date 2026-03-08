@@ -240,6 +240,23 @@ def start_viewer_server():
                     pass
                 return
 
+            if self.path == "/api/logs":
+                try:
+                    state = ConductorState.load()
+                    import json
+                    logs_json = json.dumps(state.logs)
+                    self.send_response(200)
+                    self.send_header('Content-Type', 'application/json')
+                    # Add CORS header so frontend can fetch it directly
+                    self.send_header('Access-Control-Allow-Origin', '*')
+                    self.end_headers()
+                    self.wfile.write(logs_json.encode('utf-8'))
+                    return
+                except Exception as e:
+                    logger.error(f"Failed to serve logs: {e}")
+                    self.send_error(500, "Internal Server Error")
+                    return
+
             if self.path == "/api/session_state":
                 try:
                     state = ConductorState.load()

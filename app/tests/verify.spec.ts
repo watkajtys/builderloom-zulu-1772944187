@@ -335,3 +335,63 @@ if __name__ == "__main__":
   try { await page.goto('/'); } catch (e) {}
   await page.screenshot({ path: 'evidence.png' });
 });
+
+test('Perform a GET request to the log endpoint and assert that a correct JSON array of the latest structured log events is returned.', async ({ page }) => {
+  const dynamicTaskId = `TEST-API-${Date.now()}`;
+  
+  const pyScript = `
+import os
+import sys
+
+os.chdir(os.path.abspath('.'))
+sys.path.insert(0, os.path.abspath('.'))
+
+from backend.state import ConductorState
+
+state = ConductorState.load()
+state.emit_telemetry(agent="test_api_agent", level="info", message="Testing /api/logs", metadata={"test_id": "${dynamicTaskId}"})
+state.save()
+`;
+
+  fs.writeFileSync('/tmp/test_api_log.py', pyScript);
+  execSync('python3 -m pip install -r requirements.txt > /dev/null 2>&1 && PYTHONPATH=. python3 /tmp/test_api_log.py', { cwd: path.resolve(__dirname, '../../') });
+  
+  // Actually start the backend API server temporarily for the test
+  const { spawn } = await import('child_process');
+  const serverProcess = spawn('python3', ['main.py', '--mock'], {
+    cwd: path.resolve(__dirname, '../../'),
+    detached: true,
+    env: { ...process.env, BYPASS_OVERSEER: '1' } // keep server running, skip overseer loop
+  });
+
+  // Wait for server to start
+  await new Promise(resolve => setTimeout(resolve, 2000));
+
+  try {
+    const response = await page.request.get('http://127.0.0.1:8080/api/logs');
+    expect(response.ok()).toBeTruthy();
+    
+    const logs = await response.json();
+    expect(Array.isArray(logs)).toBe(true);
+    
+    // Assert that the latest log is our structured event
+    const testLog = logs.find((l: any) => l.metadata && l.metadata.test_id === `${dynamicTaskId}`);
+    expect(testLog).toBeDefined();
+    expect(testLog.agent).toBe("test_api_agent");
+    expect(testLog.level).toBe("info");
+    expect(testLog.message).toBe("Testing /api/logs");
+  } finally {
+    // Ensure we kill the test server
+    try {
+      process.kill(-serverProcess.pid);
+    } catch (e) {}
+  }
+
+  // Load UI for screenshot
+  try {
+    await page.goto('/backend/telemetry');
+    await page.waitForTimeout(1000);
+  } catch(e) {}
+
+  await page.screenshot({ path: 'evidence.png' });
+});

@@ -43,17 +43,17 @@ export default function Telemetry() {
         
         // Let's do one more try to fetch from the API that the dashboard might use
         try {
-            const res = await fetch('http://127.0.0.1:8080/state'); // Loom Python backend
+            const res = await fetch('http://127.0.0.1:8080/api/logs'); // Loom Python backend structured logs
             if (res.ok) {
                 const data = await res.json();
-                setVersion(data.version || 'v1.1');
-                setLogs(data.logs || []);
+                setVersion('v1.1');
+                setLogs(data || []);
                 setError(null);
                 return;
             }
         } catch(e) {}
         
-        throw new Error("Cannot fetch telemetry data. PocketBase collection not found and Python backend unreachable.");
+        throw new Error("Cannot fetch telemetry data. PocketBase collection not found and Python backend API unreachable.");
       } catch (err: any) {
         setError(err.message);
       } finally {
