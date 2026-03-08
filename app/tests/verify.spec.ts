@@ -343,6 +343,15 @@ state.save()
   // Ensure error log is still visible
   await expect(errorLogLocator).toBeVisible({ timeout: 5000 });
 
+  // Verify that the Tailwind CSS dark mode and specific styling rules are applied
+  const bodyElement = page.locator('body');
+  const mainHeaderElement = page.locator('text=BUILDERLOOM ZULU').locator('..').locator('..').locator('..');
+  
+  // Check the app contains tailwind utilities from the theme like `bg-background-dark` or `text-neon-green`
+  await expect(page.locator('.text-neon-green').first()).toBeVisible({ timeout: 5000 });
+  await expect(page.locator('.bg-slate-panel').first()).toBeVisible({ timeout: 5000 });
+  await expect(page.locator('.brutalist-border').first()).toBeVisible({ timeout: 5000 });
+
   // Take screenshot as evidence
   await page.screenshot({ path: 'evidence.png' });
 });
