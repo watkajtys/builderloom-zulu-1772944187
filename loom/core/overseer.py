@@ -11,6 +11,8 @@ from enum import Enum
 from datetime import datetime
 from pathlib import Path
 
+from backend.agents.logger import get_agent_logger
+
 import warnings
 with warnings.catch_warnings():
     warnings.simplefilter("ignore")
@@ -33,7 +35,7 @@ from loom.agents.reflection import ReflectionAgent
 
 load_dotenv(override=True)
 
-logger = logging.getLogger("loom")
+logger = get_agent_logger("loom", "overseer")
 
 class LoomPhase(Enum):
     INSPIRATION = "Inspiration"
@@ -42,8 +44,6 @@ class LoomPhase(Enum):
     VALIDATION = "Validation"
     REFLECTION = "Reflection"
     DECISION = "Decision"
-
-logger = logging.getLogger("loom")
 
 class Overseer:
     def __init__(self):
@@ -56,7 +56,7 @@ class Overseer:
         
         # Use Mock Jules if requested
         if os.getenv("USE_MOCK_JULES", "").lower() == "true":
-            logger.info("[bold yellow]Using Mock Jules Client (Local Gemini)[/bold yellow]", extra={"markup": True})
+            logger.action("[bold yellow]Using Mock Jules Client (Local Gemini)[/bold yellow]", context={"mock": True})
             self.jules = MockJulesClient()
         else:
             self.jules = JulesClient()
@@ -84,7 +84,7 @@ class Overseer:
                 with open(memory_path, "r", encoding="utf-8") as f:
                     self.lab_memory = json.load(f)
             except Exception as e:
-                logger.warning(f"Failed to load loom_memory.json: {e}")
+                logger.error_event(f"Failed to load loom_memory.json: {e}", context={"error": str(e)})
         else:
             with open(memory_path, "w", encoding="utf-8") as f:
                 json.dump({"archive_count": 0, "technical_learnings": [], "past_projects": []}, f)
@@ -94,7 +94,7 @@ class Overseer:
         
         api_key = os.getenv("GEMINI_API_KEY")
         if not api_key:
-            logger.warning("GEMINI_API_KEY not found. Overseer will be lobotomized.")
+            logger.error_event("GEMINI_API_KEY not found. Overseer will be lobotomized.", context={"missing_key": True})
         else:
             genai.configure(api_key=api_key)
             # Principal Overseer (Logic & Planning)
@@ -121,10 +121,10 @@ class Overseer:
         """Helper to call Gemini with robust exponential backoff retries."""
         try:
             # Add a request-level timeout to force a DeadlineExceeded exception
-            logger.info(f"Sending request to Gemini ({model.model_name})...")
+            logger.action(f"Sending request to Gemini ({model.model_name})...", context={"model": getattr(model, "model_name", "unknown")})
             return model.generate_content(content, generation_config=generation_config, request_options={"timeout": 360})
         except Exception as e:
-            logger.warning(f"Gemini call failed (attempting retry): {e}")
+            logger.error_event(f"Gemini call failed (attempting retry): {e}", context={"error": str(e)})
             raise e
 
     def think(self, context: str, image_data: bytes = None, temperature: float = 0.7) -> str:
@@ -180,12 +180,12 @@ class Overseer:
         try:
             self.phoenix.spawn()
             self.phoenix.wait_for_ready()
-            logger.info(f"Phoenix Server is up. App is running. Verifying route {target_route} with Vision...")
+            logger.action(f"Phoenix Server is up. App is running. Verifying route {target_route} with Vision...", context={"target_route": target_route})
             
             try:
                 # 1. Capture Live App
                 if self.app_screenshot_path and os.path.exists(f"viewer/public/{self.app_screenshot_path}"):
-                    logger.info(f"Using Playwright evidence screenshot: {self.app_screenshot_path}")
+                    logger.action(f"Using Playwright evidence screenshot: {self.app_screenshot_path}", context={"screenshot_path": self.app_screenshot_path})
                     with open(f"viewer/public/{self.app_screenshot_path}", "rb") as f:
                         app_screenshot = f.read()
                     console_logs = [] 
@@ -221,12 +221,12 @@ class Overseer:
                         console_logs=console_logs
                     )
             except Exception as e:
-                logger.error(f"Vision verification failed: {e}")
+                logger.error_event(f"Vision verification failed: {e}", context={"error": str(e)})
                 score = 5
                 critique = f"Vision failed: {e}"
 
         except Exception as e:
-            logger.error(f"Happiness Check Failed: {e}")
+            logger.error_event(f"Happiness Check Failed: {e}", context={"error": str(e)})
             score = 0
             # Capture last 30 lines of Vite logs to help Jules diagnose the crash
             vite_logs = self.phoenix.get_logs(tail_lines=30)
@@ -267,14 +267,14 @@ class Overseer:
 
         with open(env_path, "w") as f:
             f.writelines(new_lines)
-        logger.info(f"Updated {env_path} with {key}={value}")
+        logger.action(f"Updated {env_path} with {key}={value}", context={"key": key})
 
     def ensure_scaffold(self):
         """Ensures that a basic React + Vite + Tailwind project exists in the app/ directory."""
         if os.path.exists("app/src"):
             return
 
-        logger.info("[bold yellow]No React project detected. Scaffolding initial application...[/bold yellow]", extra={"markup": True})
+        logger.action("[bold yellow]No React project detected. Scaffolding initial application...[/bold yellow]", context={"action": "scaffold"})
         
         # 1. Package.json
         package_json = {
@@ -469,22 +469,22 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
             self.git._run(["git", "init"], cwd="app")
             self.git._run(["git", "add", "."], cwd="app")
             self.git.commit("chore: initial scaffold")
-            logger.info("[bold green]Scaffolding complete.[/bold green]", extra={"markup": True})
+            logger.action("[bold green]Scaffolding complete.[/bold green]", context={"status": "complete"})
         except Exception as e:
-            logger.warning(f"Failed to commit scaffold: {e}")
+            logger.error_event(f"Failed to commit scaffold: {e}", context={"error": str(e)})
 
 
     def _check_shutdown(self):
         """Checks if a shutdown was requested and raises an exception to break out of current tasks."""
         self.state = ConductorState.load()
         if self.state.shutdown_requested:
-            logger.error("[bold red]EMERGENCY SHUTDOWN: TERMINATING TASK[/bold red]", extra={"markup": True})
+            logger.error_event("[bold red]EMERGENCY SHUTDOWN: TERMINATING TASK[/bold red]", context={"shutdown": True})
             raise InterruptedError("Emergency shutdown requested")
 
     def _check_for_updates(self):
         """Checks if a soft deploy update was requested and gracefully restarts the factory."""
         if os.path.exists(".pending_update_flag"):
-            logger.info("[bold yellow]Software update pending! Restarting factory gracefully...[/bold yellow]", extra={"markup": True})
+            logger.action("[bold yellow]Software update pending! Restarting factory gracefully...[/bold yellow]", context={"update": True})
             self.state.current_status = "Restarting for update..."
             self.state.save()
             try:
@@ -522,10 +522,10 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
                 self.state.db_stats = stats
                 self.state.save()
         except Exception as e:
-            logger.warning(f"Failed to refresh DB stats: {e}")
+            logger.error_event(f"Failed to refresh DB stats: {e}", context={"error": str(e)})
 
     def loop(self):
-        logger.info("[bold green]Starting Loom Loop...[/bold green]", extra={"markup": True})
+        logger.action("[bold green]Starting Loom Loop...[/bold green]", context={"loop": "start"})
         self.state.emit_telemetry(agent="overseer", level="info", message="Starting Loom Loop")
         
         prefix = self.state.project_name.lower().replace(" ", "-")
@@ -538,7 +538,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
                 # RELOAD STATE to catch external changes (like shutdown signal)
                 self.state = ConductorState.load()
                 if self.state.shutdown_requested:
-                    logger.error("[bold red]EMERGENCY SHUTDOWN: TERMINATING LOOM LOOP[/bold red]", extra={"markup": True})
+                    logger.error_event("[bold red]EMERGENCY SHUTDOWN: TERMINATING LOOM LOOP[/bold red]", context={"shutdown": True})
                     self.state.emit_telemetry(agent="overseer", level="error", message="EMERGENCY SHUTDOWN: TERMINATING LOOM LOOP")
                     self.state.current_status = "SHUTDOWN"
                     self.state.save()
@@ -558,9 +558,9 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
                             if vibe_tasks:
                                 self.state.backlog.extend(vibe_tasks)
                                 self.state.save()
-                                logger.info("Vibe Agent requested UX polish before next sprint.")
+                                logger.action("Vibe Agent requested UX polish before next sprint.", context={"tasks_added": len(vibe_tasks)})
                         except Exception as e:
-                            logger.error(f"Vibe check failed: {e}")
+                            logger.error_event(f"Vibe check failed: {e}", context={"error": str(e)})
                 
                 # 1. THE PM PHASE (If backlog is empty, generate new P1/P2 tasks)
                 if not self.state.backlog and not self.state.active_task_id:
@@ -581,7 +581,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
                         self.state.backlog.extend(new_tasks)
                         self.state.save()
                     else:
-                        logger.warning("PM Agent returned no tasks. Sleeping.")
+                        logger.thought("PM Agent returned no tasks. Sleeping.", context={"backlog_empty": True})
                         time.sleep(30)
                         continue
                 
@@ -597,7 +597,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
                 try:
                     # If happiness was already achieved on this task iteration, skip (resume logic)
                     if self.current_iteration_record and self.current_iteration_record.happiness_score >= 8.0:
-                        logger.info("Happiness already achieved in this iteration. Skipping Design and Implementation.")
+                        logger.thought("Happiness already achieved in this iteration. Skipping Design and Implementation.", context={"score": self.current_iteration_record.happiness_score})
                         self.happiness_score = self.current_iteration_record.happiness_score
                         success_branch = self.current_iteration_record.successful_branch or branch_name
                     else:
@@ -613,12 +613,12 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
                 except Exception as step_error:
                     from loom.agents.stitch import StitchQuotaError
                     if isinstance(step_error, StitchQuotaError):
-                        logger.error(f"Stitch Quota Exhausted. Entering 1-hour cooldown...")
+                        logger.error_event(f"Stitch Quota Exhausted. Entering 1-hour cooldown...", context={"error": str(step_error)})
                         self.state.current_status = "BLOCKED_QUOTA: Sleeping for 1 hour..."
                         self.state.save()
                         time.sleep(3600)
                         continue
-                    logger.error(f"Iteration aborted due to step error: {step_error}")
+                    logger.error_event(f"Iteration aborted due to step error: {step_error}", context={"error": str(step_error)})
                     self.happiness_score = 0.0
                     self.last_critique = f"Aborted during phase {self.state.current_phase}: {step_error}"
                     success_branch = branch_name
@@ -631,7 +631,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
             except KeyboardInterrupt:
                 raise
             except InterruptedError:
-                logger.error("[bold red]Loom loop interrupted by emergency shutdown.[/bold red]", extra={"markup": True})
+                logger.error_event("[bold red]Loom loop interrupted by emergency shutdown.[/bold red]", context={"shutdown": True})
                 self.state.emit_telemetry(agent="overseer", level="error", message="Loom loop interrupted by emergency shutdown")
                 self.state.current_status = "SHUTDOWN"
                 self.state.save()
@@ -639,7 +639,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
             except Exception as e:
                 import traceback
                 error_trace = traceback.format_exc()
-                logger.error(f"Critical loop error: {e}\n{error_trace}")
+                logger.error_event(f"Critical loop error: {e}\n{error_trace}", context={"error": str(e), "traceback": error_trace})
                 self.state.emit_telemetry(agent="overseer", level="error", message=str(e), metadata={"traceback": error_trace})
                 self.state.add_log(f"TELEMETRY_ERROR: Critical agent loop exception: {e}")
                 self.state.current_status = "CRITICAL_ERROR"
@@ -669,7 +669,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
         self.state.repo_memory["active_steering"] = steering_block
         self.state.save()
         
-        logger.info(f"Consumed {len(combined_notes.splitlines())} steering notes for the next iteration.")
+        logger.action(f"Consumed {len(combined_notes.splitlines())} steering notes for the next iteration.", context={"notes": len(combined_notes.splitlines())})
 
     def _step_triage(self) -> tuple[BacklogTask, str]:
         self.state.current_phase = LoomPhase.INSPIRATION.value
@@ -713,13 +713,13 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
             
             if action == "discard":
                 reason = scope_result.get("reason", "No reason provided")
-                logger.warning(f"PM Agent discarded invalid task '{candidate.id}': {reason}")
+                logger.thought(f"PM Agent discarded invalid task '{candidate.id}': {reason}", context={"reason": reason, "task_id": candidate.id})
                 self.state.backlog.pop(0)
                 self.state.save()
                 return self._step_triage() # Recurse to next task
             
             if action == "breakdown":
-                logger.info(f"Task '{candidate.id}' is too large. Breaking down into {len(scope_result.get('tasks', []))} sub-tasks.")
+                logger.action(f"Task '{candidate.id}' is too large. Breaking down into {len(scope_result.get('tasks', []))} sub-tasks.", context={"subtasks_count": len(scope_result.get('tasks', []))})
                 
                 subtasks = []
                 for t in scope_result.get("tasks", []):
@@ -742,12 +742,12 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
 
         # RESUME LOGIC: Check if we are already in an active iteration for this task
         if self.state.history and self.state.history[-1].goal == active_task.description:
-            logger.info(f"[bold cyan]Resuming existing Task {active_task.id} on branch: {branch_name}[/bold cyan]", extra={"markup": True})
+            logger.action(f"[bold cyan]Resuming existing Task {active_task.id} on branch: {branch_name}[/bold cyan]", context={"task_id": active_task.id, "branch": branch_name})
             self.current_iteration_record = self.state.history[-1]
             self.git.checkout_branch(branch_name)
             
             try:
-                logger.info(f"Merging main into {branch_name} to ensure continuity...")
+                logger.action(f"Merging main into {branch_name} to ensure continuity...", context={"branch": branch_name})
                 self.git._run(["git", "merge", "main"], cwd="app")
             except Exception:
                 pass
@@ -756,7 +756,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
 
         self.state.current_iteration += 1
         
-        logger.info(f"[bold cyan]Starting Task {active_task.id}: {active_task.description} on branch: {branch_name}[/bold cyan]", extra={"markup": True})
+        logger.action(f"[bold cyan]Starting Task {active_task.id}: {active_task.description} on branch: {branch_name}[/bold cyan]", context={"task_id": active_task.id, "branch": branch_name})
         
         self.git.checkout_branch(branch_name)
         
@@ -807,9 +807,9 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
                 
                 with open("loom_memory.json", "w", encoding="utf-8") as f:
                     json.dump(data, f, indent=2)
-                logger.info(f"Saved project '{name}' to long-term lab memory.")
+                logger.action(f"Saved project '{name}' to long-term lab memory.", context={"project_name": name})
         except Exception as e:
-            logger.warning(f"Failed to save to loom_memory.json: {e}")
+            logger.error_event(f"Failed to save to loom_memory.json: {e}", context={"error": str(e)})
 
     def _step_design(self, active_task: BacklogTask):
         self.state.current_phase = LoomPhase.DESIGN.value
@@ -818,16 +818,16 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
         # RESUME LOGIC: If a design was already chosen for this iteration and exists on disk, skip.
         if self.current_iteration_record and self.current_iteration_record.chosen_design_path:
             if os.path.exists(design_file):
-                logger.info("Reusing existing design for iteration " + str(self.state.current_iteration) + ": " + self.current_iteration_record.chosen_design_path)
+                logger.thought("Reusing existing design for iteration " + str(self.state.current_iteration) + ": " + self.current_iteration_record.chosen_design_path, context={"iteration": self.state.current_iteration, "path": self.current_iteration_record.chosen_design_path})
                 return
 
         if os.getenv("BYPASS_STITCH", "false").lower() == "true":
-            logger.info("[bold yellow]BYPASS_STITCH is enabled. Skipping Stitch API call and using existing files in app/design/.[/bold yellow]", extra={"markup": True})
+            logger.action("[bold yellow]BYPASS_STITCH is enabled. Skipping Stitch API call and using existing files in app/design/.[/bold yellow]", context={"bypass": True})
             return
 
         # EVOLUTIONARY PASS (If it is not the base design and we already have a project)
         if "BASE-DESIGN" not in active_task.id and self.state.current_iteration > 1 and getattr(self.state, 'stitch_project_id', None):
-            logger.info(f"Iteration {self.state.current_iteration}: Designing feature pass for project (3-Variant Refinement)...")
+            logger.action(f"Iteration {self.state.current_iteration}: Designing feature pass for project (3-Variant Refinement)...", context={"iteration": self.state.current_iteration})
             self.state.current_status = f"Phase 2: Refining feature layout (3-way parallel)..."
             self.state.save()
             
@@ -876,7 +876,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
                         self.current_iteration_record.layout_review_critique = review_text
                         best_l_idx = best_l_idx - 1 # Convert 1-based index to 0-based
                     except Exception as e:
-                        logger.warning(f"Vision layout critique failed for feature: {e}. Defaulting to first variant.")
+                        logger.error_event(f"Vision layout critique failed for feature: {e}. Defaulting to first variant.", context={"error": str(e)})
                         self.current_iteration_record.layout_review_critique = f"Vision critique failed: {e}. Defaulted to variant 1."
                         best_l_idx = 0
                     
@@ -934,7 +934,7 @@ Avoid the 'Premium' trap (generic SaaS aesthetics). Instead, think about the spe
 Provide 5 concise (1-2 sentence) design briefs. Label them [BRIEF 1] through [BRIEF 5].
 """
         brief_response = self.think(brief_prompt, temperature=0.9)
-        logger.info(f"Divergent Briefs:\n{brief_response}")
+        logger.thought(f"Divergent Briefs:\n{brief_response}", context={"brief_response": brief_response})
         
         briefs = []
         import re
@@ -954,12 +954,12 @@ Provide 5 concise (1-2 sentence) design briefs. Label them [BRIEF 1] through [BR
                 self.state.save()
                 self._update_env_file("STITCH_PROJECT_ID", self.state.stitch_project_id)
             except Exception as e:
-                logger.error(f"Failed to create Stitch project: {e}")
+                logger.error_event(f"Failed to create Stitch project: {e}", context={"error": str(e)})
 
         # 2. PARALLEL DISCOVERY (5 Independent Base Seeds in 5 Unique Projects)
         base_variants = []
         if self.current_iteration_record.base_variants_data:
-            logger.info("Found existing base variants data. Loading from cache...")
+            logger.action("Found existing base variants data. Loading from cache...", context={"cache": True})
             for v_data in self.current_iteration_record.base_variants_data:
                 # Load the primary image back into memory for the vision critique
                 img_path = f"viewer/public/{v_data['img_path']}"
@@ -969,11 +969,11 @@ Provide 5 concise (1-2 sentence) design briefs. Label them [BRIEF 1] through [BR
                     base_variants.append(v_data)
             
             if len(base_variants) < 5:
-                logger.warning(f"Only found {len(base_variants)}/5 valid base variants. Re-generating...")
+                logger.thought(f"Only found {len(base_variants)}/5 valid base variants. Re-generating...", context={"found": len(base_variants)})
                 base_variants = [] # Force re-generation if incomplete
 
         if not base_variants:
-            logger.info(f"Generating 5 independent base seeds sequentially...")
+            logger.action(f"Generating 5 independent base seeds sequentially...", context={"count": 5})
             self.state.current_status = "Phase 1: Generating 5 independent base seeds..."
             self.state.save()
             self.current_iteration_record.base_seed_paths = [None] * 5
@@ -982,7 +982,7 @@ Provide 5 concise (1-2 sentence) design briefs. Label them [BRIEF 1] through [BR
             results = []
             for i in range(5):
                 if i > 0:
-                    logger.info("Waiting 5s between Stitch calls...")
+                    logger.thought("Waiting 5s between Stitch calls...", context={"sleep": 5})
                     time.sleep(5)
                     
                 brief = briefs[i]
@@ -990,7 +990,7 @@ Provide 5 concise (1-2 sentence) design briefs. Label them [BRIEF 1] through [BR
                     unique_project_name = f"Loom {self.state.current_iteration} - Hypothesis {i+1}"
                     p_id = self.stitch.create_project(unique_project_name)
                     
-                    logger.info(f"Generating Seed {i+1}/5 in Project {p_id}...")
+                    logger.action(f"Generating Seed {i+1}/5 in Project {p_id}...", context={"seed_index": i+1, "project_id": p_id})
                     screens = self.stitch.generate_or_edit_screen(
                         description=f"{design_prompt}\n\nSTRUCTURAL HYPOTHESIS: {brief}",
                         project_id=p_id,
@@ -1020,10 +1020,10 @@ Provide 5 concise (1-2 sentence) design briefs. Label them [BRIEF 1] through [BR
                             "index": i
                         })
                 except StitchQuotaError as sqe:
-                    logger.error(f"Stitch Quota Exhausted during genesis: {sqe}. Aborting pass.")
+                    logger.error_event(f"Stitch Quota Exhausted during genesis: {sqe}. Aborting pass.", context={"error": str(sqe)})
                     break # Stop trying other seeds if we hit the quota
                 except Exception as e:
-                    logger.error(f"Failed to generate seed {i+1}: {e}")
+                    logger.error_event(f"Failed to generate seed {i+1}: {e}", context={"error": str(e), "seed_index": i+1})
 
             base_variants = [r for r in results if r is not None]
 
@@ -1097,7 +1097,7 @@ Provide 5 concise (1-2 sentence) design briefs. Label them [BRIEF 1] through [BR
                 best_base_idx = max(0, min(len(base_variants)-1, best_base_idx_raw - 1))
                 break # Found a winner or reached max retries
             except Exception as e:
-                logger.warning(f"Vision critique failed: {e}. Falling back to first seed.")
+                logger.error_event(f"Vision critique failed: {e}. Falling back to first seed.", context={"error": str(e)})
                 self.current_iteration_record.seed_review_critique = f"Vision critique failed: {e}."
                 best_base_idx = 0
                 break
@@ -1130,7 +1130,7 @@ Provide 5 concise (1-2 sentence) design briefs. Label them [BRIEF 1] through [BR
         self.state.save()
 
         # 3. SINGLE-CALL LAYOUT REFINEMENT (5 Variants in One Call)
-        logger.info("Generating 5 layout variants of the winning seed in a single call...")
+        logger.action("Generating 5 layout variants of the winning seed in a single call...", context={"count": 5})
         self.state.current_status = "Phase 2: Refining layout variants (5-way parallel)..."
         self.state.save()
         
@@ -1170,12 +1170,12 @@ Provide 5 concise (1-2 sentence) design briefs. Label them [BRIEF 1] through [BR
                     self.current_iteration_record.layout_review_critique = review_text
                     best_l_idx = best_l_idx - 1 # Convert 1-based index to 0-based index
                 except Exception as e:
-                    logger.warning(f"Vision layout critique failed: {e}. Defaulting to baseline.")
+                    logger.error_event(f"Vision layout critique failed: {e}. Defaulting to baseline.", context={"error": str(e)})
                     self.current_iteration_record.layout_review_critique = f"Vision layout critique failed: {e}. Defaulted to baseline."
                     best_l_idx = 0 # Treat as baseline
                 
                 if best_l_idx == 0:
-                    logger.info("Overseer chose to stick with the original Base Seed layout.")
+                    logger.thought("Overseer chose to stick with the original Base Seed layout.", context={"choice": "baseline"})
                     self.current_iteration_record.chosen_design_path = self.current_iteration_record.design_screenshot_path
                 else:
                     var_idx = best_l_idx - 1
@@ -1206,7 +1206,7 @@ Provide 5 concise (1-2 sentence) design briefs. Label them [BRIEF 1] through [BR
         if self.state.current_iteration == 1:
             self._run_theme_pass(screen_id, active_task, count=5)
         else:
-            logger.info("Applying existing App Meta theme to new layout...")
+            logger.action("Applying existing App Meta theme to new layout...", context={"theme_pass": False})
             screens = self.stitch.generate_or_edit_screen(
                 description=f"Apply this existing visual identity strictly: {self.state.app_meta}. Maintain the current layout exactly.",
                 project_id=self.state.stitch_project_id,
@@ -1241,7 +1241,7 @@ Provide 5 concise (1-2 sentence) design briefs. Label them [BRIEF 1] through [BR
         self.git.commit(f"design: unconstrained 5-5-5 discovery for iter {self.state.current_iteration}")
 
     def _run_theme_pass(self, screen_id, active_task: BacklogTask, count=5):
-        logger.info(f"Conducting Theme Pass with {count} variants...")
+        logger.action(f"Conducting Theme Pass with {count} variants...", context={"count": count})
         self.state.current_status = f"Phase 3: Exploring {count} color and typography themes..."
         self.state.save()
 
@@ -1286,12 +1286,12 @@ Provide 5 concise (1-2 sentence) design briefs. Label them [BRIEF 1] through [BR
                     
                     best_t_idx = best_t_idx - 1 # Convert 1-based index to 0-based array index
                 except Exception as e:
-                    logger.warning(f"Vision theme critique failed: {e}. Defaulting to baseline.")
+                    logger.error_event(f"Vision theme critique failed: {e}. Defaulting to baseline.", context={"error": str(e)})
                     self.current_iteration_record.theme_review_critique = f"Vision theme critique failed: {e}. Defaulted to baseline."
                     best_t_idx = 0 # Treat as baseline
                 
                 if best_t_idx == 0:
-                    logger.info("Overseer chose to stick with the baseline theme.")
+                    logger.thought("Overseer chose to stick with the baseline theme.", context={"choice": "baseline"})
                 else:
                     var_idx = best_t_idx - 1
                     chosen_t = valid_themes[var_idx]
@@ -1325,7 +1325,7 @@ Provide 5 concise (1-2 sentence) design briefs. Label them [BRIEF 1] through [BR
         # ... PB code ...
         if active_task.data_model:
             # (Rest of PB provisioning remains the same)
-            logger.info("Overseer is provisioning PocketBase schema...")
+            logger.action("Overseer is provisioning PocketBase schema...", context={"data_model": True})
             self.state.current_status = "Provisioning database schema..."
             self.state.save()
             
@@ -1368,11 +1368,11 @@ Example output:
                 
                 success = provisioner.provision_schema(schema_json)
                 if success:
-                    logger.info("Successfully provisioned PocketBase schema.")
+                    logger.action("Successfully provisioned PocketBase schema.", context={"success": True})
                 else:
-                    logger.warning("Failed to provision some or all PocketBase collections.")
+                    logger.error_event("Failed to provision some or all PocketBase collections.", context={"success": False})
             except Exception as e:
-                logger.error(f"Failed to provision database: {e}")
+                logger.error_event(f"Failed to provision database: {e}", context={"error": str(e)})
 
         self._check_shutdown()
         max_attempts = 50
@@ -1383,7 +1383,7 @@ Example output:
         while current_attempt <= max_attempts:
             self._check_shutdown()
             self._check_for_updates()
-            logger.info(f"--- Attempt {current_attempt}/{max_attempts} for Iteration {self.state.current_iteration} ---")
+            logger.action(f"--- Attempt {current_attempt}/{max_attempts} for Iteration {self.state.current_iteration} ---", context={"attempt": current_attempt, "max_attempts": max_attempts})
             self.state.current_status = f"Jules is coding (Attempt {current_attempt})..."
             self.state.save()
             
@@ -1417,7 +1417,7 @@ Example output:
                 final_refactoring_priorities = self._evaluate_iteration(current_attempt, branch_name, active_task)
                 self._check_shutdown()
             except Exception as e:
-                logger.error(f"Build failed: {e}")
+                logger.error_event(f"Build failed: {e}", context={"error": str(e)})
                 self.happiness_score = 0.0
                 self.last_critique = f"Jules run failed: {e}"
                 self._record_attempt(current_attempt, active_task)
@@ -1452,7 +1452,7 @@ Example output:
                 )
                 
                 if not any(t.description == new_refactor.description for t in self.state.backlog):
-                    logger.warning(f"Task abandoned. Architect identified remaining debt: {new_refactor.description}")
+                    logger.thought(f"Task abandoned. Architect identified remaining debt: {new_refactor.description}", context={"abandoned": True, "refactor_desc": new_refactor.description})
                     self.state.backlog.append(new_refactor)
             self.state.save()
 
@@ -1580,7 +1580,7 @@ CRITICAL RULES:
 
     def _evaluate_iteration(self, attempt, branch, active_task: BacklogTask):
         self.state.current_phase = LoomPhase.VALIDATION.value
-        logger.info(f"[bold cyan]Evaluating Attempt {attempt}...[/bold cyan]", extra={"markup": True})
+        logger.action(f"[bold cyan]Evaluating Attempt {attempt}...[/bold cyan]", context={"attempt": attempt})
         self.state.current_status = f"Evaluating (Attempt {attempt})..."
         self.state.save()
         
@@ -1595,14 +1595,14 @@ CRITICAL RULES:
             # Build check
             build_success, build_error = self._run_build()
             if not build_success:
-                logger.error(f"Build failed for attempt {attempt}: {build_error}")
+                logger.error_event(f"Build failed for attempt {attempt}: {build_error}", context={"build_error": build_error, "attempt": attempt})
                 self.happiness_score, self.last_critique = 0.0, f"Build error: {build_error}"
             else:
-                logger.info("Build successful.")
+                logger.action("Build successful.", context={"build_success": True})
                 # Test check
                 test_success, test_error = self._run_tests(attempt)
                 if not test_success:
-                    logger.error(f"Tests failed for attempt {attempt}: {test_error}")
+                    logger.error_event(f"Tests failed for attempt {attempt}: {test_error}", context={"test_error": test_error, "attempt": attempt})
                     self.happiness_score, self.last_critique = 0.0, f"Test error: {test_error}"
                     
                     # Generate a P0 Bugfix task if not already in a bugfix
@@ -1620,11 +1620,11 @@ CRITICAL RULES:
                         )
                         # De-duplicate bugfixes
                         if not any(t.description == bugfix_task.description for t in self.state.backlog):
-                            logger.warning(f"Sentry identified a broken build. Pushing P0 BUGFIX to backlog.")
+                            logger.thought(f"Sentry identified a broken build. Pushing P0 BUGFIX to backlog.", context={"bugfix_pushed": True})
                             self.state.backlog.insert(0, bugfix_task)
                             self.state.save()
                 else:
-                    logger.info("Tests passed.")
+                    logger.action("Tests passed.", context={"test_success": True})
                     # Vision check
                     if active_task.requires_design:
                         self.happiness_score, self.last_critique, self.app_screenshot = self.evaluate_happiness(active_task, target_route=active_task.target_route)
@@ -1640,7 +1640,7 @@ CRITICAL RULES:
                         # Store the architect critique in the iteration record for display
                         self.current_iteration_record.architectural_critique = arch_critique
         except Exception as e:
-            logger.error(f"Evaluation crashed: {e}")
+            logger.error_event(f"Evaluation crashed: {e}", context={"error": str(e)})
             self.happiness_score, self.last_critique = 0.0, f"Evaluation error: {str(e)}"
 
         # ALWAYS Record attempt
@@ -1670,7 +1670,7 @@ CRITICAL RULES:
                 shutil.move("app/evidence.png", evidence_path)
                 # Store relative path for UI
                 self.app_screenshot_path = f"artifacts/iter_{self.state.current_iteration}_attempt_{attempt}_evidence_{ts}.png"
-                logger.info(f"Evidence captured: {evidence_path}")
+                logger.action(f"Evidence captured: {evidence_path}", context={"evidence_path": evidence_path})
             
             return result.returncode == 0, result.stderr or result.stdout
         except Exception as e:
@@ -1714,7 +1714,7 @@ CRITICAL RULES:
 
     def _step_reflection(self, active_task: BacklogTask):
         self.state.current_phase = LoomPhase.REFLECTION.value
-        logger.info("Conducting Reflection Pass...")
+        logger.action("Conducting Reflection Pass...", context={"reflection_pass": True})
         self.state.current_status = "Reflecting on iteration..."
         self.state.save()
         
@@ -1724,7 +1724,7 @@ CRITICAL RULES:
             last_critique=self.last_critique,
             app_meta=self.state.app_meta
         )
-        logger.info(f"Learnings:\n{learnings}")
+        logger.thought(f"Learnings:\n{learnings}", context={"learnings": learnings})
         
         # Save to the iteration record for the Viewer UI
         self.current_iteration_record.reflection_learnings = learnings
@@ -1765,19 +1765,19 @@ CRITICAL RULES:
             with open("loom_memory.json", "w", encoding="utf-8") as f:
                 json.dump(data, f, indent=2)
         except Exception as e:
-            logger.warning(f"Failed to append learning to loom_memory.json: {e}")
+            logger.error_event(f"Failed to append learning to loom_memory.json: {e}", context={"error": str(e)})
 
     def _step_decision(self, branch, active_task: BacklogTask):
         self.state.current_phase = LoomPhase.DECISION.value
         if self.happiness_score >= 8.0:
-            logger.info(f"Happiness achieved on branch {branch}! Merging to main.")
+            logger.action(f"Happiness achieved on branch {branch}! Merging to main.", context={"branch": branch})
             self.git.checkout_branch("main")
             try:
                 self.git._run(["git", "merge", "-X", "theirs", branch], cwd="app")
                 self.git.push_branch("main")
                 
                 # FINAL PRODUCTION BUILD (For the Live App)
-                logger.info("Triggering final production build for the live app...")
+                logger.action("Triggering final production build for the live app...", context={"build": "production"})
                 self._run_build()
                 
                 self.state.current_status = "Merge successful. Preparing for next loop..."
@@ -1787,17 +1787,17 @@ CRITICAL RULES:
                 self.state.active_task_id = None
                 self.state.save()
             except Exception as e:
-                logger.error(f"Merge to main failed: {e}. Resetting main.")
+                logger.error_event(f"Merge to main failed: {e}. Resetting main.", context={"error": str(e)})
                 self.git._run(["git", "reset", "--hard", "origin/main"], cwd="app")
         else:
             # If max attempts reached, we might want to abandon. 
             # For now, let's assume if it reached here without high score, it stays 'todo' in the backlog
             # but we clear the active_task_id so triage can potentially repick or re-eval
-            logger.info("Happiness not met for this iteration.")
+            logger.thought("Happiness not met for this iteration.", context={"happiness_score": self.happiness_score})
             
             # Check if we should abandon (e.g. after many attempts)
             if len(self.current_iteration_record.attempts) >= 10:
-                logger.warning(f"Task {active_task.id} failed after many attempts. Abandoning.")
+                logger.thought(f"Task {active_task.id} failed after many attempts. Abandoning.", context={"abandon": True, "task_id": active_task.id})
                 if self.current_iteration_record:
                     self.current_iteration_record.abandoned = True
                 
@@ -1810,7 +1810,7 @@ CRITICAL RULES:
                 
                 # If we don't have any previous successful iterations, the genesis project failed.
                 if not any(h.happiness_score >= 8.0 for h in self.state.history[:-1]):
-                    logger.warning("Genesis project failed. Resetting design state to restart 5-5-5 genesis.")
+                    logger.thought("Genesis project failed. Resetting design state to restart 5-5-5 genesis.", context={"genesis_failed": True})
                     self.state.stitch_project_id = None
                     self.state.stitch_screen_id = None
                     self.state.app_meta = ""
