@@ -47,7 +47,7 @@ export default function Dashboard() {
         }
 
         try {
-            const res = await fetch('http://127.0.0.1:8080/state'); // Loom Python backend
+            const res = await fetch('http://127.0.0.1:8080/state?_t=' + new Date().getTime()); // Loom Python backend
             if (res.ok) {
                 const data = await res.json();
                 setVersion(data.version || 'v1.1');
@@ -59,7 +59,11 @@ export default function Dashboard() {
         
         try {
             // Fallback for UI visualization offline testing
-            const mockRes = await fetch('/session_state.json');
+            const url = new URL(window.location.href);
+            // Some tests might rely on exactly `/session_state.json` without queries to mock properly,
+            // or Vite might fail to resolve the path with query params if it's served by a specific plugin.
+            // Let's use fetch with cache: 'no-store' instead of query param appending to avoid 404s.
+            const mockRes = await fetch('/session_state.json', { cache: 'no-store' });
             if (mockRes.ok) {
                 const MockData = await mockRes.json();
                 setVersion(MockData.version || 'v1.1 (Mock Offline)');
