@@ -526,6 +526,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
 
     def loop(self):
         logger.info("[bold green]Starting Loom Loop...[/bold green]", extra={"markup": True})
+        self.state.emit_telemetry(agent="overseer", level="info", message="Starting Loom Loop")
         
         prefix = self.state.project_name.lower().replace(" ", "-")
         self.git.ensure_remote(repo_name_prefix=prefix)
@@ -538,6 +539,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
                 self.state = ConductorState.load()
                 if self.state.shutdown_requested:
                     logger.error("[bold red]EMERGENCY SHUTDOWN: TERMINATING LOOM LOOP[/bold red]", extra={"markup": True})
+                    self.state.emit_telemetry(agent="overseer", level="error", message="EMERGENCY SHUTDOWN: TERMINATING LOOM LOOP")
                     self.state.current_status = "SHUTDOWN"
                     self.state.save()
                     break
@@ -630,6 +632,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
                 raise
             except InterruptedError:
                 logger.error("[bold red]Loom loop interrupted by emergency shutdown.[/bold red]", extra={"markup": True})
+                self.state.emit_telemetry(agent="overseer", level="error", message="Loom loop interrupted by emergency shutdown")
                 self.state.current_status = "SHUTDOWN"
                 self.state.save()
                 break
@@ -637,6 +640,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
                 import traceback
                 error_trace = traceback.format_exc()
                 logger.error(f"Critical loop error: {e}\n{error_trace}")
+                self.state.emit_telemetry(agent="overseer", level="error", message=str(e), metadata={"traceback": error_trace})
                 self.state.add_log(f"TELEMETRY_ERROR: Critical agent loop exception: {e}")
                 self.state.current_status = "CRITICAL_ERROR"
                 self.state.shutdown_requested = True

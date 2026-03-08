@@ -79,6 +79,8 @@ _state_lock = threading.RLock()
 
 class ConductorState(BaseModel):
     schema_version: str = "1.0.0"
+    version: str = "v1.1"
+    logs: List[dict] = []
     project_name: str = "Loom Experiment"
     app_meta: str = ""
     product_phase: str = "Phase 1: Core Loop MVP"
@@ -205,7 +207,27 @@ class ConductorState(BaseModel):
                     except:
                         pass
     
+
+    def emit_telemetry(self, agent: str, level: str, message: str, metadata: dict = None):
+        import uuid
+        from datetime import datetime
+        with _state_lock:
+            log_entry = {
+                "id": str(uuid.uuid4()),
+                "timestamp": datetime.now().isoformat() + "Z",
+                "agent": agent,
+                "level": level,
+                "message": message,
+                "metadata": metadata or {}
+            }
+            self.logs.append(log_entry)
+            # Keep logs size manageable, maybe 1000 items max
+            if len(self.logs) > 1000:
+                self.logs = self.logs[-1000:]
+            self.save()
+            
     def add_log(self, log_line: str):
+
         with _state_lock:
             self.live_logs.append(log_line)
             if len(self.live_logs) > 500:
