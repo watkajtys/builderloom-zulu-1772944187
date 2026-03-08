@@ -15,6 +15,51 @@ test('App initializes correctly and renders dashboard components', async ({ page
   await page.screenshot({ path: 'evidence.png' });
 });
 
+test('Verify the new ANOMALY_WRN filter correctly hides warning logs while maintaining others.', async ({ page }) => {
+  // Mock data via Python backend execution
+  const pyScript = `
+import os
+import sys
+
+# Change directory so we can load the module correctly
+os.chdir(os.path.abspath('.'))
+sys.path.insert(0, os.path.abspath('.'))
+
+from backend.state import ConductorState
+
+state = ConductorState.load()
+state.emit_telemetry(agent="test_runner", level="error", message="This is an error")
+state.emit_telemetry(agent="test_runner", level="warning", message="This is a warning log")
+state.emit_telemetry(agent="test_runner", level="info", message="This is an info")
+state.save()
+`;
+
+  fs.writeFileSync('/tmp/test_filter_warning.py', pyScript);
+  
+  // Run the script
+  execSync('python3 -m pip install -q --disable-pip-version-check -r requirements.txt > /dev/null 2>&1 && PYTHONPATH=. python3 /tmp/test_filter_warning.py > /dev/null 2>&1', { cwd: path.resolve(__dirname, '../../') });
+  
+  await page.goto('http://127.0.0.1:5173/');
+  await expect(page.locator('text=BUILDERLOOM ZULU')).toBeVisible({ timeout: 10000 });
+  
+  const warningLog = page.locator('text=This is a warning log').first();
+  await expect(warningLog).toBeVisible({ timeout: 5000 });
+
+  // Toggle off ANOMALY_WRN filter so warning logs hide
+  const warnFilterSpan = page.locator('text=LVL: ANOMALY_WRN');
+  await warnFilterSpan.click();
+  
+  // Assert 'warning' log is hidden
+  await expect(warningLog).toBeHidden({ timeout: 5000 });
+
+  // Error and Info should still be visible
+  await expect(page.locator('text=This is an error').first()).toBeVisible({ timeout: 5000 });
+  await expect(page.locator('text=This is an info').first()).toBeVisible({ timeout: 5000 });
+
+  // Take screenshot as evidence
+  await page.screenshot({ path: 'evidence.png' });
+});
+
 test('Header renders dynamic title correctly based on route', async ({ page }) => {
   // Test Dashboard route
   await page.goto('http://127.0.0.1:5173/');

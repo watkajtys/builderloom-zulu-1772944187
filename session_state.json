@@ -18,6 +18,30 @@
       "agent": "test-agent",
       "level": "info",
       "message": "Structured info log test"
+    },
+    {
+      "id": "ed46591b-fc91-4979-b78d-43aebb9e7d6a",
+      "timestamp": "2026-03-08T16:12:19.834843Z",
+      "agent": "test_runner",
+      "level": "error",
+      "message": "This is an error",
+      "metadata": {}
+    },
+    {
+      "id": "03f14116-34bd-4427-a356-4efa21c80f7d",
+      "timestamp": "2026-03-08T16:12:19.835785Z",
+      "agent": "test_runner",
+      "level": "warning",
+      "message": "This is a warning log",
+      "metadata": {}
+    },
+    {
+      "id": "3af34ccb-4c88-4336-91de-f0ea6fb60809",
+      "timestamp": "2026-03-08T16:12:19.836551Z",
+      "agent": "test_runner",
+      "level": "info",
+      "message": "This is an info",
+      "metadata": {}
     }
   ],
   "project_name": "Loom Experiment",
