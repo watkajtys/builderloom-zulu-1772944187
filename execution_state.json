@@ -1,0 +1,51 @@
+{
+  "schema_version": "1.0.0",
+  "ui_containers": [
+    {
+      "id": "1",
+      "name": "loom-pocketbase",
+      "status": "stopped",
+      "image": "pocketbase/pocketbase",
+      "ports": [
+        "8090:8090"
+      ]
+    },
+    {
+      "id": "2",
+      "name": "loom-python",
+      "status": "running",
+      "image": "python:3.11-slim",
+      "ports": [
+        "8080:8080"
+      ]
+    },
+    {
+      "id": "3",
+      "name": "loom-react",
+      "status": "stopped",
+      "image": "node:20-alpine",
+      "ports": [
+        "5173:5173"
+      ]
+    }
+  ],
+  "ui_agents": [
+    {
+      "agentId": "jules-alpha",
+      "state": "idle",
+      "currentTask": "Waiting for task",
+      "happinessScore": 10
+    },
+    {
+      "agentId": "overseer-beta",
+      "state": "idle",
+      "currentTask": "Phase: Inspiration",
+      "happinessScore": 10
+    }
+  ],
+  "ui_metrics": {
+    "activeContainers": 1,
+    "agentCount": 2,
+    "systemHealth": 0
+  }
+}

@@ -1,79 +1,19 @@
-import React, { useEffect, useState } from 'react';
-import PocketBase from 'pocketbase';
-
-interface TelemetryLog {
-  id: string;
-  timestamp: string;
-  agent: string;
-  level: string;
-  message: string;
-  metadata?: any;
-}
+import React from 'react';
+import { useTelemetry } from '../hooks/useTelemetry';
 
 export default function Telemetry() {
-  const [logs, setLogs] = useState<TelemetryLog[]>([]);
-  const [version, setVersion] = useState<string>('');
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
-
-  useEffect(() => {
-    const fetchTelemetry = async () => {
-      try {
-        setLoading(true);
-        // Try PocketBase first
-        const pb = new PocketBase(window.location.protocol + "//" + window.location.hostname + ":8090");
-        
-        try {
-           const record = await pb.collection('telemetry_state').getFirstListItem('');
-           setVersion(record.version);
-           setLogs(record.logs);
-           setError(null);
-           return;
-        } catch(pbErr) {
-           console.log("PB fetch failed, trying Python backend via 8080 or local proxy...", pbErr);
-        }
-
-        // The python backend runs on 8080 usually and serves state. Let's try to fetch it directly
-        // if this was hosted together, or simply grab the raw file via Vite if we can map it.
-        // Actually, since we're testing the file `session_state.json` existing, let's just show mock data
-        // if both fail, so the UI is visible for the visual check, but normally it connects to PB.
-        // Wait, the prompt said: "implement the corresponding persistence logic using the pocketbase SDK connecting to port 8090". 
-        // We DID implement it. The fact it fails here is just because we haven't seeded PocketBase in this test environment.
-        // Let's just catch the error and display an empty state or the error cleanly.
-        
-        // Let's do one more try to fetch from the API that the dashboard might use
-        try {
-            const res = await fetch('http://127.0.0.1:8080/state'); // Loom Python backend
-            if (res.ok) {
-                const data = await res.json();
-                setVersion(data.version || 'v1.1');
-                setLogs(data.logs || []);
-                setError(null);
-                return;
-            }
-        } catch(e) {}
-        
-        throw new Error("Cannot fetch telemetry data. PocketBase collection not found and Python backend unreachable.");
-      } catch (err: any) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchTelemetry();
-    
-    // Set up a basic interval to poll for updates
-    const interval = setInterval(fetchTelemetry, 5000);
-    return () => clearInterval(interval);
-  }, []);
+  const { data, error, isLoading: loading } = useTelemetry();
+  
+  const logs = data?.logs || [];
+  const version = data?.version || '';
+  const errorMessage = error?.message || null;
 
   return (
     <div className="p-8">
       <h1 className="text-3xl font-bold mb-4">System Telemetry</h1>
       {version && <p className="text-sm text-gray-400 mb-6">Schema Version: {version}</p>}
       
-      {error && <div className="bg-red-900/50 text-red-200 p-4 rounded mb-6">{error}</div>}
+      {errorMessage && <div className="bg-red-900/50 text-red-200 p-4 rounded mb-6">{errorMessage}</div>}
       
       {loading && logs.length === 0 ? (
         <p>Loading telemetry data...</p>
@@ -113,7 +53,7 @@ export default function Telemetry() {
                   </td>
                 </tr>
               ))}
-              {logs.length === 0 && !error && (
+              {logs.length === 0 && !errorMessage && (
                 <tr>
                   <td colSpan={4} className="p-6 text-center text-slate-500">
                     No telemetry events recorded yet.
