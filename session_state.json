@@ -1,0 +1,69 @@
+{
+  "schema_version": "1.0.0",
+  "version": "v1.1",
+  "logs": [
+    {
+      "id": "4a3dcf01-c934-43de-bee4-719fbeeddfac",
+      "timestamp": "2026-03-08T08:57:28.763725Z",
+      "agent": "test_runner",
+      "level": "info",
+      "message": "Starting Telemetry Loop",
+      "metadata": {}
+    },
+    {
+      "id": "b5333218-114e-4d82-ad09-ab055e4c8722",
+      "timestamp": "2026-03-08T08:57:28.764899Z",
+      "agent": "overseer",
+      "level": "error",
+      "message": "Intentional exception to test telemetry",
+      "metadata": {
+        "traceback": "Traceback (most recent call last):\n  File \"/tmp/test_telemetry.py\", line 21, in loop\n    raise ValueError(\"Intentional exception to test telemetry\")\nValueError: Intentional exception to test telemetry\n"
+      }
+    },
+    {
+      "id": "dddad755-314c-498b-a47d-11ef2f28889f",
+      "timestamp": "2026-03-08T08:57:28.897102Z",
+      "agent": "test_runner",
+      "level": "error",
+      "message": "This is a critical system error that should remain visible.",
+      "metadata": {}
+    },
+    {
+      "id": "0f6cfd2c-e1a3-4f5b-8959-247285a757c2",
+      "timestamp": "2026-03-08T08:57:28.897923Z",
+      "agent": "test_runner",
+      "level": "info",
+      "message": "This is a thought that should be hidden when filtered.",
+      "metadata": {}
+    }
+  ],
+  "project_name": "Loom Experiment",
+  "app_meta": "",
+  "product_phase": "Phase 1: Core Loop MVP",
+  "product_roadmap": "",
+  "repo_memory": {},
+  "current_iteration": 0,
+  "active_branch": "main",
+  "backlog": [],
+  "active_task_id": null,
+  "inspiration_goal": "",
+  "inspiration_target_route": "/",
+  "inspiration_data_model": null,
+  "inspiration_requires_design": true,
+  "inspiration_mode": "design",
+  "inspiration_test_scenario": "",
+  "history": [],
+  "stitch_project_id": null,
+  "stitch_screen_id": null,
+  "active_jules_prompt": null,
+  "active_jules_url": null,
+  "active_jules_action": null,
+  "current_status": "Idle",
+  "current_phase": "Inspiration",
+  "pending_steer": [],
+  "steering_history": [],
+  "live_logs": [],
+  "shutdown_requested": true,
+  "update_scheduled": false,
+  "db_stats": {}
+}

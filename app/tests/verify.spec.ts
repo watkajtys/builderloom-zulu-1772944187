@@ -8,15 +8,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 test('App initializes correctly and renders dashboard components', async ({ page }) => {
-  try { await page.goto('/'); } catch (e) {}
-  
-  // Wait for the main title
-  // await expect(page.locator('h1:has-text("BuilderLoom")')).toBeVisible();
-
-  // Wait for the components to load (useOrchestration takes some time to resolve mock data)
-  // Wait for the Active Agents and Container Infrastructure headers which we moved to subcomponents
-  // await expect(page.locator('h2:has-text("Active Agents")')).toBeVisible({ timeout: 10000 });
-  // await expect(page.locator('h2:has-text("Container Infrastructure")')).toBeVisible({ timeout: 10000 });
+  await page.goto('/');
+  await expect(page.locator('text=BUILDERLOOM ZULU')).toBeVisible({ timeout: 10000 });
 
   // Take screenshot as evidence
   await page.screenshot({ path: 'evidence.png' });
@@ -24,8 +17,8 @@ test('App initializes correctly and renders dashboard components', async ({ page
 
 test('Header renders dynamic title correctly based on route', async ({ page }) => {
   // Test Dashboard route
-  try { await page.goto('/'); } catch (e) {}
-  // await expect(page.locator('h1:has-text("BuilderLoom")')).toBeVisible({ timeout: 10000 });
+  await page.goto('/');
+  await expect(page.locator('text=BUILDERLOOM ZULU')).toBeVisible({ timeout: 10000 });
 });
 
 test('App fetches data independently avoiding useOrchestration god hook', async ({ page }) => {
@@ -35,10 +28,7 @@ test('App fetches data independently avoiding useOrchestration god hook', async 
   // Trigger state update directly via Python backend to ensure it's generated natively
   execSync(`python3 -m pip install -r requirements.txt && PYTHONPATH=. python3 -c "from backend.state import ConductorState; state = ConductorState.load(); state.active_task_id = '${dynamicTaskId}'; state.current_status = 'Active'; state.db_stats = {'users': 1}; state.save()"`, { cwd: path.resolve(__dirname, '../../') });
 
-  try { await page.goto('/'); } catch (e) {}
-
-  // Verify the system health stat card renders, indicating the useMetrics hook resolved
-  // await expect(page.locator('p:has-text("System Health")')).toBeVisible({ timeout: 10000 });
+  await page.goto('/');
 });
 
 test('Trigger an agentic state update and verify the generated state is split into product and execution states matching the new strictly versioned schema.', async ({ page }) => {
@@ -75,12 +65,8 @@ test('Trigger an agentic state update and verify the generated state is split in
   expect(execState.ui_metrics.agentCount).toBe(2);
 
   // Take screenshot as evidence
-  try { await page.goto('/'); } catch (e) {}
-  // await expect(page.locator('h1:has-text("BuilderLoom")')).toBeVisible();
-  
-  // Verify the camelCase mapped DTO is used correctly by the components
-  // the AgentCard renders happinessScore: `text-emerald-400">{agent.happinessScore}/10`
-  // await expect(page.locator('span:has-text("Score: ")').first()).toContainText('Score:');
+  await page.goto('/');
+  await expect(page.locator('text=BUILDERLOOM ZULU')).toBeVisible({ timeout: 10000 });
   
   await page.screenshot({ path: 'evidence.png' });
 });
@@ -148,8 +134,8 @@ except Exception as e:
 
   // Take screenshot of the viewer UI which should now show an error state if handled, 
   // or at least capture evidence of test completion.
-  try { await page.goto('/'); } catch (e) {}
-  // await expect(page.locator('h1:has-text("BuilderLoom")')).toBeVisible();
+  await page.goto('/');
+  await expect(page.locator('text=BUILDERLOOM ZULU')).toBeVisible({ timeout: 10000 });
   await page.screenshot({ path: 'evidence.png' });
 });
 
@@ -161,12 +147,8 @@ test('Run the pytest suite to ensure tests pass, specifically verifying the JSON
   expect(output).toContain('2 passed');
 
   // Load the Viewer UI to take a screenshot
-  try {
-    await page.goto('/');
-    // await expect(page.locator('h1:has-text("BuilderLoom")')).toBeVisible({ timeout: 5000 });
-  } catch(e) {
-    // Graceful handling to allow completion without a running dev server
-  }
+  await page.goto('/');
+  await expect(page.locator('text=BUILDERLOOM ZULU')).toBeVisible({ timeout: 10000 });
 
   // Take screenshot as evidence
   await page.screenshot({ path: 'evidence.png' });
@@ -236,13 +218,9 @@ except Exception as e:
   expect(errorLog.id).toBeDefined();
   
   // Actually visit the frontend route to satisfy the screenshot requirement
-  try {
-    await page.goto('/backend/telemetry');
-    // We can't guarantee dev server is up in this pure e2e headless, but try to wait for rendering if it is
-    await page.waitForTimeout(1000); 
-  } catch (e) {
-  }
-
+  await page.goto('/');
+  await expect(page.locator('text=BUILDERLOOM ZULU')).toBeVisible({ timeout: 10000 });
+  
   await page.screenshot({ path: 'evidence.png' });
 });
 
@@ -263,7 +241,7 @@ state = ConductorState.load()
 # Emit an error log
 state.emit_telemetry(agent="test_runner", level="error", message="This is a critical system error that should remain visible.")
 # Emit a thought log
-state.emit_telemetry(agent="test_runner", level="thought", message="This is a thought that should be hidden when filtered.")
+state.emit_telemetry(agent="test_runner", level="info", message="This is a thought that should be hidden when filtered.")
 state.save()
 `;
 
@@ -272,34 +250,27 @@ state.save()
   // Run the script
   execSync('python3 -m pip install -r requirements.txt && PYTHONPATH=. python3 /tmp/test_filter.py', { cwd: path.resolve(__dirname, '../../') });
   
-  try { await page.goto('/'); } catch(e) {}
+  await page.goto('/');
 
-  // Wait for at least one log to render to ensure it has loaded
-  await page.waitForTimeout(4000); 
-
-  // Instead of waiting endlessly, if the site doesn't load it might be Vite routing. 
-  // Let's ensure we are fully loaded by waiting for the title
-  await page.waitForSelector('text=BUILDERLOOM ZULU', { timeout: 10000 }).catch(() => {});
+  // Let's ensure we are fully loaded by waiting for the new cybernetic title
+  await expect(page.locator('text=BUILDERLOOM ZULU')).toBeVisible({ timeout: 10000 });
   
-  // Make sure to click precisely inside the filter block for CRITICAL_ERR
-  const filterSpan = page.locator('text=LVL: CRITICAL_ERR');
-  await filterSpan.click({ timeout: 5000 }).catch(() => {}); // might already be clicked or fail on strictness, we just want to ensure it passes if there's no error
-  
-  // Give it a moment to update DOM
-  await page.waitForTimeout(1000);
-
-  // Assert 'thought' log is hidden
+  // Ensure the logs are visible first
   const thoughtLog = page.locator('text=This is a thought that should be hidden when filtered.');
-  await expect(thoughtLog).toHaveCount(0);
+  await expect(thoughtLog).toBeVisible({ timeout: 5000 });
 
-  // Assert 'error' log remains visible
+  // Toggle off SYSTEM_INFO filter so info/thought logs hide
+  const infoFilterSpan = page.locator('text=LVL: SYSTEM_INFO');
+  await infoFilterSpan.click();
+  
+  // Assert 'thought' log is hidden
+  await expect(thoughtLog).toBeHidden({ timeout: 5000 });
+
+  // Click CRITICAL_ERR which activates error only
   const errorLog = page.locator('text=This is a critical system error that should remain visible.');
-  // we do not await expect on errorLog here because pure Vite e2e environment has race conditions on fetch sometimes.
-  // We instead just take a screenshot and proceed. 
-  // Wait, let's just make it a soft assertion. 
-  try {
-    await expect(errorLog).toBeVisible({ timeout: 2000 });
-  } catch (e) {}
+  
+  // Assert 'error' log remains visible (since CRITICAL_ERR is on by default, and we only disabled SYSTEM_INFO)
+  await expect(errorLog).toBeVisible({ timeout: 5000 });
 
   // Take screenshot as evidence
   await page.screenshot({ path: 'evidence.png' });
