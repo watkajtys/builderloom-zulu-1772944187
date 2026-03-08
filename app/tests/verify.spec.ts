@@ -286,6 +286,7 @@ test('Verify dynamic import was removed and application fetches JSON properly av
 });
 
 test('Verify React Viewer UI correctly consumes, displays, and filters structured JSON logs', async ({ page }) => {
+  console.log('Testing refactored component files rendering');
   // Setup the mock state file for this test
   const testLogs = [
     {
